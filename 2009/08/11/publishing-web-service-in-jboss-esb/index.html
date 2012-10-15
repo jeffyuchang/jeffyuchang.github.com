@@ -1,0 +1,419 @@
+
+<!DOCTYPE html>
+<!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7 ie" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="no-js lt-ie9 lt-ie8 ie" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="no-js lt-ie9 ie" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1">
+	<title>Publishing web service in JBoss ESB</title>
+	<meta name="author" content="Jeff Yu">
+	<link href='/assets/themes/the-minimum/css/style.css' rel="stylesheet" media="all">
+	<link href="http://feeds.feedburner.com/" rel="alternate" title="Publishing web service in JBoss ESB" type="application/atom+xml">
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/modernizr/2.0.6/modernizr.min.js"></script>
+</head>
+<body>
+
+<div id="page" class="hentry">
+	<header class="the-header">
+		<div class="unit-head">
+			<div class="unit-inner unit-head-inner">
+				<p class="logo"><a href="/">Jeff Yu @ IT</a>
+					</p>
+				<nav class="nav-global">
+					<ul>
+						<li class="index"><a href="/index.html">home</a></li>
+						<li class="archive"><a href="/archive.html">archive</a></li>
+						<li class="articles"><a href="/articles.html">articles</a></li>
+						<li class="tag"><a href="/tags.html">tags</a></li>
+                        <li class="about"><a href="/about.html">about</a></li>
+					</ul>
+				</nav>
+			</div><!-- unit-inner -->
+		</div><!-- unit-head -->
+	</header>
+	<div class="body" role="main">
+		<div class="unit-body">
+			<div class="unit-inner unit-body-inner">
+				<div class="entry-content">
+					
+<article class="unit-article layout-post">
+	<div class="unit-inner unit-article-inner">
+		<div class="content">
+			<header>
+				<div class="unit-head">
+					<div class="unit-inner unit-head-inner">
+						<h1 class="h3 entry-title">Publishing web service in JBoss ESB</h1>
+						<div class="meta">
+							<p class="date-publish">
+								Date:
+								<date class="date-pub" title="2009-08-11T00:00:00+10:00" datetime="2009-08-11T00:00:00+10:00" pubdate>
+								<span class="day">11</span> -
+								<span class="month">08</span> -
+								<span class="year">2009</span>
+								</date>
+							</p>
+						</div>
+					</div><!-- unit-inner -->
+				</div><!-- unit-head -->
+			</header>
+
+			<div class="bd">
+				<div class="entry-content">				
+					<p>As of this writing, <a href="http://www.jboss.org/jbossesb">JBoss ESB 4.6</a> has two ways of publishing web service for ESB service:</p>
+
+<ul>
+<li>Using JSR 181 annotation to do the web service publish and use SOAPProcessor action to connect it in ESB.</li>
+<li>Providing the in,out, fault xsd schema to generate the wsdl dynamically and publish the web service.</li>
+</ul>
+
+
+<p>These two ways are not exclusive, it is for different usage:</p>
+
+<ul>
+<li>The first one is using JBossWS to publish the annotated Java service, and then using the SOAPProcessor to be a thin wrapper for the existed web service.</li>
+<li>The second one, which we called EBWS(Endpoint Web Service), is asking developers to provide the in,out,fault xsd if it is required, And then uses these xsds, plus the service info (like service name, category etc) that were defined in the jboss-esb.xml to generate the wsdl and publish the web service.</li>
+</ul>
+
+
+<p>The JBoss ESB distribution has both quick start examples for these two scenarios. We will examine them in order shortly, quickstart/webservice_producer sample is using the first approach that we've described, while the quickstart/publish_as_webservice is the EBWS as we said.</p>
+
+<h4>web service producer using SOAPProcessor</h4>
+
+<p>We will examine the first approach, below are the steps that is required to publish a web service in ESB.</p>
+
+<p>1.<em>Add the impl class with jsr 181 annotation</em></p>
+
+<p>Lets see the GoodbyeWorldWS.java class, this is the class that is supposed to expose as web service.</p>
+
+<div class="highlight"><pre><code class="java"><span class="nd">@WebService</span><span class="o">(</span><span class="n">name</span> <span class="o">=</span>  <span class="s">&quot;GoodbyeWorldWS &quot;</span><span class="o">,</span> <span class="n">targetNamespace</span><span class="o">=</span> <span class="s">&quot;http://webservice_producer/goodbyeworld &quot;</span><span class="o">)</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">GoodbyeWorldWS</span> <span class="o">{</span>
+<span class="nd">@WebMethod</span>
+<span class="kd">public</span> <span class="n">String</span> <span class="nf">sayGoodbye</span><span class="o">(</span><span class="nd">@WebParam</span><span class="o">(</span><span class="n">name</span><span class="o">=</span> <span class="s">&quot;message &quot;</span><span class="o">)</span> <span class="n">String</span> <span class="n">message</span><span class="o">)</span> <span class="o">{</span>
+
+
+   <span class="n">Message</span> <span class="n">esbMessage</span> <span class="o">=</span> <span class="n">SOAPProcessor</span><span class="o">.</span><span class="na">getMessage</span><span class="o">();</span>
+   <span class="k">if</span><span class="o">(</span><span class="n">esbMessage</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+       <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span> <span class="s">&quot;**** SOAPRequest perhaps mediated by ESB:n &quot;</span> <span class="o">+</span> <span class="n">esbMessage</span><span class="o">.</span><span class="na">getBody</span><span class="o">().</span><span class="na">get</span><span class="o">());</span>
+   <span class="o">}</span>
+   <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span> <span class="s">&quot;Web Service Parameter - message= &quot;</span> <span class="o">+</span> <span class="n">message</span><span class="o">);</span>
+   <span class="k">return</span>  <span class="s">&quot;... Ah Goodbye then!!!! -  &quot;</span> <span class="o">+</span> <span class="n">message</span><span class="o">;</span>
+<span class="o">}</span>
+<span class="o">....</span>
+<span class="o">}</span>
+</code></pre>
+</div>
+
+
+<p>You can see that we are using the jsr181 annotation to expose it as web service. Noted that we are using the SOAPProcessor class to get the incoming soap message just for demonstration, you don't have to use it in this class's implementation.</p>
+
+<p>2.<em>Add web.xml to deploy it in servlet container</em></p>
+
+<p>In the $webservice_producer/war/resources/WEB-INF/web.xml, it looks like</p>
+
+<div class="highlight"><pre><code class="xml"> <span class="nt">&lt;servlet-name</span> <span class="nt">&gt;</span>GoodbyeWorldWS <span class="nt">&lt;/servlet-name &gt;</span>
+    <span class="nt">&lt;servlet-class</span> <span class="nt">&gt;</span>org.jboss.soa.esb.samples.quickstart.webserviceproducer.webservice.GoodbyeWorldWS <span class="nt">&lt;/servlet-class &gt;</span>
+ <span class="nt">&lt;/servlet &gt;</span>
+
+ <span class="nt">&lt;servlet-mapping</span> <span class="nt">&gt;</span>
+    <span class="nt">&lt;servlet-name</span> <span class="nt">&gt;</span>GoodbyeWorldWS <span class="nt">&lt;/servlet-name &gt;</span>
+    <span class="nt">&lt;url-pattern</span> <span class="nt">&gt;</span>/GoodbyeWorldWS <span class="nt">&lt;/url-pattern &gt;</span>
+ <span class="nt">&lt;/servlet-mapping &gt;</span>
+</code></pre>
+</div>
+
+
+<p>Typically, we can build a war file that includes both web.xml and the GoodbyeWorldWS.class, and it should be enough to be published as a web service through JBoss WS. since we are trying to access the web service through our ESB, so we need to define an extra file (jboss-esb.xml) in our case.</p>
+
+<p>3.<em>Add SOAPProcessor in the jboss-esb.xml</em></p>
+
+<p>In the jboss-esb.xml service section, we need to use the SOAPProcessor as following:</p>
+
+<div class="highlight"><pre><code class="xml"> <span class="nt">&lt;action</span> <span class="na">name=</span> <span class="s">&quot;JBossWSAdapter &quot;</span> <span class="na">class=</span> <span class="s">&quot;org.jboss.soa.esb.actions.soap.SOAPProcessor &quot;</span> <span class="nt">&gt;</span>
+     <span class="nt">&lt;property</span> <span class="na">name=</span> <span class="s">&quot;jbossws-endpoint &quot;</span> <span class="na">value=</span> <span class="s">&quot;GoodbyeWorldWS &quot;</span><span class="nt">/ &gt;</span>
+ <span class="nt">&lt;/action &gt;</span>
+</code></pre>
+</div>
+
+
+<p>Here the "jbossws-endpoint" property should be referred to published web service servlet name.
+<em>Tip</em>: There's one optional property "rewrite-endpoint-url" which is not used in this sample. This property is to support load balance on HTTP endpoints.</p>
+
+<p>4.<em>pack them in esb and war archive</em></p>
+
+<p>The last step for us it to pack them and then deploy. The war file will include all needed classes and web.xml to publish web service. The esb file will include all needed esb files, like jboss-esb.xml etc. You can bundle the war file into esb archive, which is the way that sample uses.</p>
+
+<p>Until now, we've described all of important steps. Next, we will deploy this esb archive into ESB server, you can see the wsdl file at: http://localhost:8080/contract/ (This is offered by ESB), or you can see the one from http://localhost:8080/jbossws/services, that is offered by JBoss WS.</p>
+
+<p>5.<em>Add the client to do the test</em>
+So, we've completed our server side work. In the example, we defined three gateway for this web service, for the simplicity, we will just look at the one uses JBR gateway to do the test in our client. Here is the client code:</p>
+
+<div class="highlight"><pre><code class="java"><span class="kd">private</span> <span class="kt">void</span> <span class="nf">sendMessageToJBRListener</span><span class="o">(</span><span class="n">String</span> <span class="n">protocol</span><span class="o">,</span> <span class="kt">int</span> <span class="n">port</span><span class="o">,</span> <span class="n">String</span> <span class="n">message</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Throwable</span> <span class="o">{</span>
+   <span class="n">String</span> <span class="n">locatorURI</span> <span class="o">=</span> <span class="n">protocol</span> <span class="o">+</span>  <span class="s">&quot;://localhost: &quot;</span> <span class="o">+</span> <span class="n">port</span><span class="o">;</span>
+   <span class="n">InvokerLocator</span> <span class="n">locator</span> <span class="o">=</span> <span class="k">new</span> <span class="n">InvokerLocator</span><span class="o">(</span><span class="n">locatorURI</span><span class="o">);</span>
+   <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span> <span class="s">&quot;Calling JBoss Remoting Listener using locator URI:  &quot;</span> <span class="o">+</span> <span class="n">locatorURI</span><span class="o">);</span>
+
+
+   <span class="n">Client</span> <span class="n">remotingClient</span> <span class="o">=</span> <span class="kc">null</span><span class="o">;</span>
+   <span class="k">try</span> <span class="o">{</span>
+       <span class="n">remotingClient</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Client</span><span class="o">(</span><span class="n">locator</span><span class="o">);</span>
+       <span class="n">remotingClient</span><span class="o">.</span><span class="na">connect</span><span class="o">();</span>
+
+       <span class="c1">// Deliver the message to the listener...</span>
+       <span class="n">Object</span> <span class="n">response</span> <span class="o">=</span> <span class="n">remotingClient</span><span class="o">.</span><span class="na">invoke</span><span class="o">(</span><span class="n">message</span><span class="o">);</span>
+       <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span> <span class="s">&quot;JBR Class:  &quot;</span> <span class="o">+</span> <span class="n">response</span><span class="o">.</span><span class="na">getClass</span><span class="o">().</span><span class="na">getName</span><span class="o">());</span>
+       <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span> <span class="s">&quot;Response from JBoss Remoting Listener &#39; &quot;</span> <span class="o">+</span> <span class="n">locatorURI</span> <span class="o">+</span>  <span class="s">&quot;&#39; was &#39; &quot;</span> <span class="o">+</span> <span class="n">response</span> <span class="o">+</span>  <span class="s">&quot;&#39;. &quot;</span><span class="o">);</span>
+   <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+       <span class="k">if</span><span class="o">(</span><span class="n">remotingClient</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
+           <span class="n">remotingClient</span><span class="o">.</span><span class="na">disconnect</span><span class="o">();</span>
+       <span class="o">}</span>
+   <span class="o">}</span>
+<span class="o">}</span>
+</code></pre>
+</div>
+
+
+<p>We are using the following soap message in our client as input.</p>
+
+<div class="highlight"><pre><code class="xml"> <span class="nt">&lt;soapenv:Envelope</span> <span class="na">xmlns:soapenv=</span> <span class="s">&quot;http://schemas.xmlsoap.org/soap/envelope/ &quot;</span> <span class="na">xmlns:good=</span> <span class="s">&quot;http://webservice_producer/goodbyeworld &quot;</span> <span class="nt">&gt;</span>
+ <span class="nt">&lt;soapenv:Header/ &gt;</span>
+ <span class="nt">&lt;soapenv:Body</span> <span class="nt">&gt;</span>
+ <span class="nt">&lt;good:sayGoodbye</span> <span class="nt">&gt;</span>
+     <span class="nt">&lt;message&gt;</span>Goodbye!!<span class="nt">&lt;/message&gt;</span>
+  <span class="nt">&lt;/good:sayGoodbye &gt;</span>
+ <span class="nt">&lt;/soapenv:Body &gt;</span>
+ <span class="nt">&lt;/soapenv:Envelope &gt;</span>
+</code></pre>
+</div>
+
+
+<p>Run the "ant deploy" to deploy the server into ESB server; Run the 'ant runtest', you would get following result:</p>
+
+<div class="highlight"><pre><code class="xml">saygoodbye_over_http:
+[echo] Invoking a JBossWS Endpoint over HTTP (via JBoss ESB).
+Calling JBoss Remoting Listener using locator URI: http://localhost:8765
+JBR Class: java.lang.String
+Response from JBoss Remoting Listener &#39;http://localhost:8765&#39; was &#39; <span class="nt">&lt;env:Envelope</span> <span class="na">xmlns:env=</span><span class="s">&#39;http://schemas.xmlsoap.org/soap/envelope/&#39;</span> <span class="nt">&gt;</span> <span class="nt">&lt;env:Header</span> <span class="nt">&gt;</span> <span class="nt">&lt;/env:Header &gt;</span> <span class="nt">&lt;env:Body</span> <span class="nt">&gt;</span> <span class="nt">&lt;ns2:sayGoodbyeResponse</span> <span class="na">xmlns:ns2=</span> <span class="s">&quot;http://webservice_producer/goodbyeworld &quot;</span> <span class="nt">&gt;</span> <span class="nt">&lt;return</span> <span class="nt">&gt;</span>... Ah Goodbye then!!!! - Goodbye!! <span class="nt">&lt;/return &gt;</span> <span class="nt">&lt;/ns2:sayGoodbyeResponse &gt;</span> <span class="nt">&lt;/env:Body &gt;</span> <span class="nt">&lt;/env:Envelope &gt;</span>&#39;.
+</code></pre>
+</div>
+
+
+<h5>ESB End Point Web Service</h5>
+
+<p>Now, we will see the End Point Web Service, the corresponding example is publish_as_webservice in the JBoss ESB distribution. Lets also see it step by step.</p>
+
+<ol>
+<li><em>The Web Service server class</em></li>
+</ol>
+
+
+<p>firstly, take a look at the server impl class.</p>
+
+<div class="highlight"><pre><code class="java"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">ESBWSListenerAction</span> <span class="kd">extends</span> <span class="n">AbstractActionLifecycle</span>
+<span class="o">{</span>
+<span class="kd">protected</span> <span class="n">ConfigTree</span> <span class="n">_config</span><span class="o">;</span>
+
+
+<span class="kd">public</span> <span class="nf">ESBWSListenerAction</span><span class="o">(</span><span class="n">ConfigTree</span> <span class="n">config</span><span class="o">)</span>
+<span class="o">{</span>
+   <span class="n">_config</span> <span class="o">=</span> <span class="n">config</span><span class="o">;</span>
+<span class="o">}</span>
+
+<span class="kd">public</span> <span class="n">Message</span> <span class="nf">displayMessage</span><span class="o">(</span><span class="n">Message</span> <span class="n">message</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Exception</span>
+<span class="o">{</span>
+<span class="o">.......</span>
+<span class="o">}</span>
+</code></pre>
+</div>
+
+
+<p>Is it just an ordinary ESB action? right, it is. This is totally different from the first one that we saw earlier, we do not have annotation, we used the ESB's Message Object as input/output parameter.</p>
+
+<p><em>Note</em>: In this approach, you can view it as Dispatch/Provider way that we used to have in JAX-WS, it means you deal with the raw soap message directly, the server doesn't help you do the unmarshall work, this is also a very big difference from the first approach.</p>
+
+<ol>
+<li><em>define request, response, fault xsd</em></li>
+</ol>
+
+
+<p>In this example, we just define the in and out xsd. it is as following:
+request.xsd</p>
+
+<div class="highlight"><pre><code class="xml"> <span class="nt">&lt;xs:schema</span> <span class="na">version=</span> <span class="s">&quot;1.0 &quot;</span> <span class="na">targetNamespace=</span> <span class="s">&quot;http://www.jboss.org/sayHi &quot;</span> <span class="na">xmlns:x1=</span> <span class="s">&quot;http://www.jboss.org/sayHi &quot;</span>  <span class="na">xmlns:xs=</span> <span class="s">&quot;http://www.w3.org/2001/XMLSchema &quot;</span> <span class="na">elementFormDefault=</span> <span class="s">&quot;qualified &quot;</span> <span class="nt">&gt;</span>
+ <span class="nt">&lt;xs:element</span> <span class="na">name=</span> <span class="s">&quot;sayHi &quot;</span> <span class="na">type=</span> <span class="s">&quot;x1:sayHi &quot;</span><span class="nt">/ &gt;</span>
+ <span class="nt">&lt;xs:complexType</span> <span class="na">name=</span> <span class="s">&quot;sayHi &quot;</span> <span class="nt">&gt;</span>
+ <span class="nt">&lt;xs:sequence</span> <span class="nt">&gt;</span>
+  <span class="nt">&lt;xs:element</span> <span class="na">name=</span> <span class="s">&quot;arg0 &quot;</span> <span class="na">type=</span> <span class="s">&quot;xs:string &quot;</span> <span class="na">minOccurs=</span> <span class="s">&quot;1 &quot;</span><span class="nt">/ &gt;</span>
+ <span class="nt">&lt;/xs:sequence &gt;</span>
+ <span class="nt">&lt;/xs:complexType &gt;</span>
+ <span class="nt">&lt;/xs:schema &gt;</span>
+</code></pre>
+</div>
+
+
+<p>Response.xsd</p>
+
+<div class="highlight"><pre><code class="xml"> <span class="nt">&lt;xs:schema</span> <span class="na">version=</span> <span class="s">&quot;1.0 &quot;</span> <span class="na">targetNamespace=</span> <span class="s">&quot;http://www.jboss.org/sayHi &quot;</span> <span class="na">xmlns:x1=</span> <span class="s">&quot;http://www.jboss.org/sayHi &quot;</span>  <span class="na">xmlns:xs=</span> <span class="s">&quot;http://www.w3.org/2001/XMLSchema &quot;</span> <span class="na">elementFormDefault=</span> <span class="s">&quot;qualified &quot;</span> <span class="nt">&gt;</span>
+ <span class="nt">&lt;xs:element</span> <span class="na">name=</span> <span class="s">&quot;sayHiResponse &quot;</span> <span class="na">type=</span> <span class="s">&quot;x1:sayHiResponse &quot;</span><span class="nt">/ &gt;</span>
+ <span class="nt">&lt;xs:complexType</span> <span class="na">name=</span> <span class="s">&quot;sayHiResponse &quot;</span> <span class="nt">&gt;</span>
+ <span class="nt">&lt;xs:sequence</span> <span class="nt">&gt;</span>
+  <span class="nt">&lt;xs:element</span> <span class="na">name=</span> <span class="s">&quot;arg0 &quot;</span> <span class="na">type=</span> <span class="s">&quot;xs:string &quot;</span> <span class="na">minOccurs=</span> <span class="s">&quot;0 &quot;</span><span class="nt">/ &gt;</span>
+ <span class="nt">&lt;/xs:sequence &gt;</span>
+ <span class="nt">&lt;/xs:complexType &gt;</span>
+ <span class="nt">&lt;/xs:schema &gt;</span>
+</code></pre>
+</div>
+
+
+<p>We won't show the fault.xsd for the simplicity.</p>
+
+<p>3.<em>Add xsd file in the jboss-esb.xml</em></p>
+
+<p>After we've defined the xsd file, we will add it in the jboss-esb.xml like following.</p>
+
+<div class="highlight"><pre><code class="xml"> <span class="nt">&lt;actions</span>  <span class="na">inXsd=</span> <span class="s">&quot;/request.xsd &quot;</span> <span class="na">outXsd=</span> <span class="s">&quot;/response.xsd &quot;</span> <span class="na">faultXsd=</span> <span class="s">&quot;/fault.xsd &quot;</span> <span class="nt">&gt;</span>
+               <span class="nt">&lt;action</span> <span class="na">name=</span> <span class="s">&quot;action &quot;</span> <span class="na">class=</span> <span class="s">&quot;org.jboss.soa.esb.samples.quickstart.publishAsWebservice.ESBWSListenerAction &quot;</span> <span class="na">process=</span> <span class="s">&quot;displayMessage &quot;</span><span class="nt">/ &gt;</span>
+        <span class="nt">&lt;/actions &gt;</span>
+</code></pre>
+</div>
+
+
+<p><em>Tip</em>: Here it use the 'service name' + hard code name, like 'Binding' for binding, 'Op' for operation name in the generated wsdl. Refer to ESBServiceEndpointInfo class for its detail.</p>
+
+<p>4.<em>build it as an esb artifact and deploy</em></p>
+
+<p>The last step is to build them as an esb archive and deploy it into the ESB server, as same as the first approach, you can see its wsdl file through either http://localhost:8080/contract or http://localhost:8080/jbossws/services.</p>
+
+<p>The client is as same as the first one(apart from the soap message and url), so I won't show it again.</p>
+
+<h5>Summary</h5>
+
+<p>You see two approaches to help you publish web service in JBoss ESB. At first glance, you might think EBWS(second approach here) is simple as you don't need to build the war file etc. But I would say the first approach is more common in the real use case.</p>
+
+<h5>Acknowledgement</h5>
+
+<p>I'd like to thank my colleague <a href="http://maerqiang.blogspot.com/">Jim Ma</a> for help me explain these two approaches on publishing web service.</p>
+
+<h5>Reference</h5>
+
+<ol>
+<li><a href="http://www.jboss.org/jbossesb">JBoss ESB website</a>.</li>
+<li><a href="http://www.mastertheboss.com/en/soa-a-esb/137-jboss-esb-webservice-producer.html">JBoss ESB Webservice Producer</a>.</li>
+</ol>
+
+
+					<div class="meta">
+						<ul class="list-tag list-linear">
+							<li class="list-head">tags: </li>
+							
+							
+
+
+  
+     
+    	<li><a href="/tags.html#ESB-ref">ESB <span>2</span></a></li>
+     
+    	<li><a href="/tags.html#Java-ref">Java <span>24</span></a></li>
+     
+    	<li><a href="/tags.html#JBossESB-ref">JBossESB <span>2</span></a></li>
+     
+    	<li><a href="/tags.html#Web Service-ref">Web Service <span>3</span></a></li>
+    
+  
+
+
+
+						</ul>
+					</div><!-- meta -->
+				</div><!-- entry-content -->
+				<div class="misc-content">
+					<div class="social">
+						<ul class="list-linear">
+							<li><div class="twitter-tweet"><a href="https://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="jeffyuchang" data-lang="en">Tweet</a></div></li>
+							<li><div class="twitter-follow"><a href="https://twitter.com/jeffyuchang" class="twitter-follow-button" data-show-count="false" data-lang="en"></a></div></li>
+						</ul>
+					</div>
+					
+					
+
+
+  <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_developer = 1;
+    var disqus_shortname = 'jeffyuchang'; // required: replace example with your forum shortname
+    
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+
+
+
+				</div><!-- misc-content -->
+				
+			</div><!-- bd -->
+			<footer class="unit-foot">
+				<div class="unit-inner unit-foot-inner">
+					<nav class="pagination">
+						<ul>
+							
+							<li class="prev"><a class="internal" rel="prev"  href="/2009/08/08/jbpm-4-0-restful-service-introduction" title="View jBPM 4.0 restful service introduction.">&laquo; jBPM 4.0 restful service introduction.</a></li>
+							
+							
+							<li class="pipe"> | </li>
+							
+							
+							<li class="next"><a class="internal" rel="next"  href="/2009/09/10/soft-delete-or-hard-delete" title="View Soft delete, or Hard delete.">Soft delete, or Hard delete. &raquo;</a></li>
+							
+						</ul>
+					</nav>
+					<p class="gotop">
+						<a href="#page">Back to Top</a>
+					</p>
+				</div>
+			</footer>
+
+		</div><!-- content -->
+	</div><!-- unit-inner -->
+</article>
+
+
+				</div>
+			</div><!-- unit-inner -->
+		</div><!-- unit-body -->
+	</div><!-- body -->
+	<footer class="the-footer">
+		<div class="unit-foot">
+			<div class="unit-inner unit-foot-inner">
+			</div><!-- unit-foot-inner -->
+		</div><!-- unit-foot -->
+	</footer>
+</div><!-- page -->
+<script>
+	(function(d, s) {
+		var js, fjs = d.getElementsByTagName(s)[0], load = function(url, id) {
+		if (d.getElementById(id)) {return;}
+		js = d.createElement(s); js.src = url; js.id = id;
+		fjs.parentNode.insertBefore(js, fjs);
+		};
+	load('//platform.twitter.com/widgets.js', 'tweetjs');
+	// load('https://apis.google.com/js/plusone.js', 'gplus1js'); // Checkout http://j.mp/ApDgMr for usage html for this is <div class="g-plusone" data-size="medium"></div>
+	// load('//connect.facebook.net/en_US/all.js#xfbml=1', 'fbjssdk'); // Checkout http://j.mp/wZw2xR for using open graph protorol html for this is <div class="fb-like" data-href="/2009/08/11/publishing-web-service-in-jboss-esb" data-send="false" data-layout="button_count" data-width="450" data-show-faces="false" data-font="verdana"></div>
+	}(document, 'script'));
+</script>
+<script>
+/*! A fix for the iOS orientationchange zoom bug.Script by @scottjehl, rebound by @wilto. MIT License.*/
+(function(j){var i=j.document;if(!i.querySelectorAll){return}var l=i.querySelectorAll("meta[name=viewport]")[0],a=l&&l.getAttribute("content"),h=a+", maximum-scale=1.0",d=a+", maximum-scale=10.0",g=true,c=j.orientation,k=0;if(!l){return}function f(){l.setAttribute("content",d);g=true}function b(){l.setAttribute("content",h);g=false}function e(m){c=Math.abs(j.orientation);k=Math.abs(m.gamma);if(k>8&&c===0){if(g){b()}}else{if(!g){f()}}}j.addEventListener("orientationchange",f,false);j.addEventListener("deviceorientation",e,false)})(this);
+</script>
+
+  
+</body>
+</html>
+
