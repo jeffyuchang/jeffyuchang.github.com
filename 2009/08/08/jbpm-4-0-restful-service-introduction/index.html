@@ -1,0 +1,265 @@
+
+<!DOCTYPE html>
+<!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7 ie" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="no-js lt-ie9 lt-ie8 ie" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="no-js lt-ie9 ie" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1">
+	<title>jBPM 4.0 restful service introduction.</title>
+	<meta name="author" content="Jeff Yu">
+	<link href='/assets/themes/the-minimum/css/style.css' rel="stylesheet" media="all">
+	<link href="http://feeds.feedburner.com/" rel="alternate" title="jBPM 4.0 restful service introduction." type="application/atom+xml">
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/modernizr/2.0.6/modernizr.min.js"></script>
+</head>
+<body>
+
+<div id="page" class="hentry">
+	<header class="the-header">
+		<div class="unit-head">
+			<div class="unit-inner unit-head-inner">
+				<p class="logo"><a href="/">Jeff Yu @ IT</a>
+					</p>
+				<nav class="nav-global">
+					<ul>
+						<li class="index"><a href="/index.html">home</a></li>
+						<li class="archive"><a href="/archive.html">archive</a></li>
+						<li class="articles"><a href="/articles.html">articles</a></li>
+						<li class="tag"><a href="/tags.html">tags</a></li>
+                        <li class="about"><a href="/about.html">about</a></li>
+					</ul>
+				</nav>
+			</div><!-- unit-inner -->
+		</div><!-- unit-head -->
+	</header>
+	<div class="body" role="main">
+		<div class="unit-body">
+			<div class="unit-inner unit-body-inner">
+				<div class="entry-content">
+					
+<article class="unit-article layout-post">
+	<div class="unit-inner unit-article-inner">
+		<div class="content">
+			<header>
+				<div class="unit-head">
+					<div class="unit-inner unit-head-inner">
+						<h1 class="h3 entry-title">jBPM 4.0 restful service introduction.</h1>
+						<div class="meta">
+							<p class="date-publish">
+								Date:
+								<date class="date-pub" title="2009-08-08T00:00:00+10:00" datetime="2009-08-08T00:00:00+10:00" pubdate>
+								<span class="day">08</span> -
+								<span class="month">08</span> -
+								<span class="year">2009</span>
+								</date>
+							</p>
+						</div>
+					</div><!-- unit-inner -->
+				</div><!-- unit-head -->
+			</header>
+
+			<div class="bd">
+				<div class="entry-content">				
+					<p>We all knew that we've had a completely re-write console that is using GWT in jBPM 4.0.  But we might not know that we've also introduced a set of jbpm restful services. Specifically, it is including following resources: Process Management, Task Management, User Management, Process Engine service etc. These resources are exchanged by using json as data format. The jBPM console <em>http://localhost:8080/jbpm-console</em> operates jbpm services through this restful services.</p>
+
+<p>Assume that you've installed the jBPM 4.0, started the server, you can see all available services at <em>http://localhost:8080/gwt-console-server/rs/server/resources</em> url. This page basically lists the most important information for the services, like the Method (could be GET, POST etc), the url, consume and produce data format etc.</p>
+
+<p>Now, lets look at how many components are consist of this restful service. In the jBPM server, we can find following three packages.</p>
+
+<div class="highlight"><pre><code class="java"><span class="n">$JBoss</span><span class="o">/</span><span class="n">server</span><span class="o">/</span><span class="k">default</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">gwt</span><span class="o">-</span><span class="n">console</span><span class="o">-</span><span class="n">rpc</span><span class="o">.</span><span class="na">jar</span>
+<span class="n">$JBoss</span><span class="o">/</span><span class="n">server</span><span class="o">/</span><span class="k">default</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">gwt</span><span class="o">-</span><span class="n">console</span><span class="o">-</span><span class="n">server</span><span class="o">-</span><span class="n">integration</span><span class="o">.</span><span class="na">jar</span>
+<span class="n">$JBoss</span><span class="o">/</span><span class="n">server</span><span class="o">/</span><span class="k">default</span><span class="o">/</span><span class="n">deploy</span><span class="o">/</span><span class="n">jbpm</span><span class="o">/</span><span class="n">gwt</span><span class="o">-</span><span class="n">console</span><span class="o">-</span><span class="n">server</span><span class="o">.</span><span class="na">war</span>
+</code></pre>
+</div>
+
+
+<p>These three libraries are the backbone of our restful services:</p>
+
+<ul>
+<li><em>gwt-console-rpc.jar</em>: this jar includes all the domain classes that server used to expose. In other word, this jar define all of data format that we are going to expose to the client.</li>
+<li><em>gwt-console-server-integration</em>: This package includes all of abstracted SPIs(Service Provider Interface), like TaskManagement etc. jBPM integration layer uses this to implement these SPIs.</li>
+<li><em>gwt-console-server.war</em>: This artifact extends the rpc and server-integration modules(the artifacts in the default/deploy folder will see all libaries in the default/lib folder) , also leverages the RESTEasy lib to expose all of service to be restful. (here we are using the RESTEasy's jaxb-json provider to expose all the domain model into json data format.)</li>
+</ul>
+
+
+<p><em>Tip</em>: we've put all of jBPM related API into the jbpm.jar itself (you can find it under the $JBoss/server/default/lib/jbpm.jar). For the jBPM integration point, we are getting the ProcessEngine API from the JNDI at "java:/ProcessEngine".</p>
+
+<p>Now you saw these services. Next I will write a simple test to use this service to show you how you can leverage it.</p>
+
+<p>For its simplicity, I won't do it in the html, that is what jBPM console did, here I will write a test client, and then use the <a href="http://code.google.com/p/google-gson/">Gson library</a> to convert the json into our domain model(in our gwt-console-rpc).</p>
+
+<div class="highlight"><pre><code class="java"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">RestfulServiceTest</span> <span class="kd">extends</span> <span class="n">TestCase</span> <span class="o">{</span>
+
+  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">testDeploymentRestfulService</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+      <span class="n">URL</span> <span class="n">url</span> <span class="o">=</span> <span class="k">new</span> <span class="n">URL</span><span class="o">(</span><span class="s">&quot;http://localhost:8080/gwt-console-server/rs/engine/deployments&quot;</span><span class="o">);</span>
+      <span class="n">HttpURLConnection</span> <span class="n">connection</span> <span class="o">=</span> <span class="o">(</span><span class="n">HttpURLConnection</span><span class="o">)</span><span class="n">url</span><span class="o">.</span><span class="na">openConnection</span><span class="o">();</span>
+      <span class="n">connection</span><span class="o">.</span><span class="na">setRequestMethod</span><span class="o">(</span><span class="s">&quot;GET&quot;</span><span class="o">);</span>
+
+      <span class="n">BufferedReader</span> <span class="n">reader</span> <span class="o">=</span> <span class="k">new</span> <span class="n">BufferedReader</span><span class="o">(</span><span class="k">new</span>
+                <span class="n">InputStreamReader</span><span class="o">(</span><span class="n">connection</span><span class="o">.</span><span class="na">getInputStream</span><span class="o">()));</span>
+
+      <span class="n">StringBuffer</span> <span class="n">buffer</span> <span class="o">=</span> <span class="k">new</span> <span class="n">StringBuffer</span><span class="o">();</span>
+      <span class="n">String</span> <span class="n">line</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="na">readLine</span><span class="o">();</span>
+      <span class="k">while</span> <span class="o">(</span><span class="n">line</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span>
+      <span class="o">{</span>
+       <span class="n">buffer</span><span class="o">.</span><span class="na">append</span><span class="o">(</span><span class="n">line</span><span class="o">);</span>
+       <span class="n">line</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="na">readLine</span><span class="o">();</span>
+      <span class="o">}</span>
+
+      <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">buffer</span><span class="o">.</span><span class="na">toString</span><span class="o">());</span>
+
+      <span class="n">Gson</span> <span class="n">gson</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Gson</span><span class="o">();</span>
+      <span class="n">DeploymentRefWrapper</span> <span class="n">result</span> <span class="o">=</span> <span class="n">gson</span><span class="o">.</span><span class="na">fromJson</span><span class="o">(</span><span class="n">buffer</span><span class="o">.</span><span class="na">toString</span><span class="o">(),</span> <span class="n">DeploymentRefWrapper</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+
+      <span class="k">for</span> <span class="o">(</span><span class="n">DeploymentRef</span> <span class="n">deploymentRef</span> <span class="o">:</span> <span class="n">result</span><span class="o">.</span><span class="na">getDeployments</span><span class="o">())</span> <span class="o">{</span>
+          <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;deployment name is: &quot;</span> <span class="o">+</span> <span class="n">deploymentRef</span><span class="o">.</span><span class="na">getName</span><span class="o">());</span>
+      <span class="o">}</span>
+
+      <span class="n">connection</span><span class="o">.</span><span class="na">disconnect</span><span class="o">();</span>
+  <span class="o">}</span>
+
+<span class="o">}</span>
+</code></pre>
+</div>
+
+
+<p>Before you run the above code, you need to make sure that you've started the jBPM 4.0, and deployed a bar file into the server. Otherwise you would see nothing, as there were no data on the server. (you can refer to <a href="/tags.html#jBPM-ref">my previous blogs</a>, if you don't know how to start and deploy bar artifact into server).</p>
+
+<p><em>Note</em>: You need to add the gson lib in your classpath.</p>
+
+<p>Run the test code, you would get following result.</p>
+
+<div class="highlight"><pre><code class="java"> <span class="o">{</span><span class="s">&quot;deployments&quot;</span><span class="o">:[{</span><span class="s">&quot;id&quot;</span><span class="o">:</span><span class="s">&quot;1&quot;</span><span class="o">,</span><span class="s">&quot;suspended&quot;</span><span class="o">:</span><span class="kc">false</span><span class="o">,</span><span class="s">&quot;name&quot;</span><span class="o">:</span><span class="s">&quot;helloworld.bar&quot;</span><span class="o">,</span><span class="s">&quot;timestamp&quot;</span><span class="o">:</span><span class="mi">1249805642238</span><span class="o">,</span><span class="s">&quot;definitions&quot;</span><span class="o">:[</span><span class="s">&quot;helloworld-1&quot;</span><span class="o">],</span><span class="s">&quot;resourceNames&quot;</span><span class="o">:[</span><span class="s">&quot;review.ftl&quot;</span><span class="o">,</span><span class="s">&quot;META-INF/&quot;</span><span class="o">,</span><span class="s">&quot;META-INF/MANIFEST.MF&quot;</span><span class="o">,</span><span class="s">&quot;helloworld.jpdl.xml&quot;</span><span class="o">,</span><span class="s">&quot;helloworld.png&quot;</span><span class="o">]}]}</span>
+ <span class="n">deployment</span> <span class="n">name</span> <span class="nl">is:</span> <span class="n">helloworld</span><span class="o">.</span><span class="na">bar</span>
+</code></pre>
+</div>
+
+
+<p>First one is the whole data in json format.</p>
+
+<h5>Reference</h5>
+
+<ol>
+<li><a href="http://www.jboss.org/community/wiki/BPMConsoleReference">BPM Console Reference</a></li>
+</ol>
+
+
+					<div class="meta">
+						<ul class="list-tag list-linear">
+							<li class="list-head">tags: </li>
+							
+							
+
+
+  
+     
+    	<li><a href="/tags.html#BPM-ref">BPM <span>12</span></a></li>
+     
+    	<li><a href="/tags.html#Java-ref">Java <span>22</span></a></li>
+     
+    	<li><a href="/tags.html#JBoss-ref">JBoss <span>11</span></a></li>
+     
+    	<li><a href="/tags.html#jBPM-ref">jBPM <span>7</span></a></li>
+     
+    	<li><a href="/tags.html#REST-ref">REST <span>1</span></a></li>
+     
+    	<li><a href="/tags.html#RESTEasy-ref">RESTEasy <span>1</span></a></li>
+    
+  
+
+
+
+						</ul>
+					</div><!-- meta -->
+				</div><!-- entry-content -->
+				<div class="misc-content">
+					<div class="social">
+						<ul class="list-linear">
+							<li><div class="twitter-tweet"><a href="https://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="jeffyuchang" data-lang="en">Tweet</a></div></li>
+							<li><div class="twitter-follow"><a href="https://twitter.com/jeffyuchang" class="twitter-follow-button" data-show-count="false" data-lang="en"></a></div></li>
+						</ul>
+					</div>
+					
+					
+
+
+  <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_developer = 1;
+    var disqus_shortname = 'jeffyuchang'; // required: replace example with your forum shortname
+    
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+
+
+
+				</div><!-- misc-content -->
+				
+			</div><!-- bd -->
+			<footer class="unit-foot">
+				<div class="unit-inner unit-foot-inner">
+					<nav class="pagination">
+						<ul>
+							
+							<li class="prev"><a class="internal" rel="prev"  href="/2009/07/24/code-against-web-service" title="View code against web service.">&laquo; code against web service.</a></li>
+							
+							
+							<li class="pipe"> | </li>
+							
+							
+							<li class="next"><a class="internal" rel="next"  href="/2009/09/10/soft-delete-or-hard-delete" title="View Soft delete, or Hard delete.">Soft delete, or Hard delete. &raquo;</a></li>
+							
+						</ul>
+					</nav>
+					<p class="gotop">
+						<a href="#page">Back to Top</a>
+					</p>
+				</div>
+			</footer>
+
+		</div><!-- content -->
+	</div><!-- unit-inner -->
+</article>
+
+
+				</div>
+			</div><!-- unit-inner -->
+		</div><!-- unit-body -->
+	</div><!-- body -->
+	<footer class="the-footer">
+		<div class="unit-foot">
+			<div class="unit-inner unit-foot-inner">
+			</div><!-- unit-foot-inner -->
+		</div><!-- unit-foot -->
+	</footer>
+</div><!-- page -->
+<script>
+	(function(d, s) {
+		var js, fjs = d.getElementsByTagName(s)[0], load = function(url, id) {
+		if (d.getElementById(id)) {return;}
+		js = d.createElement(s); js.src = url; js.id = id;
+		fjs.parentNode.insertBefore(js, fjs);
+		};
+	load('//platform.twitter.com/widgets.js', 'tweetjs');
+	// load('https://apis.google.com/js/plusone.js', 'gplus1js'); // Checkout http://j.mp/ApDgMr for usage html for this is <div class="g-plusone" data-size="medium"></div>
+	// load('//connect.facebook.net/en_US/all.js#xfbml=1', 'fbjssdk'); // Checkout http://j.mp/wZw2xR for using open graph protorol html for this is <div class="fb-like" data-href="/2009/08/08/jbpm-4-0-restful-service-introduction" data-send="false" data-layout="button_count" data-width="450" data-show-faces="false" data-font="verdana"></div>
+	}(document, 'script'));
+</script>
+<script>
+/*! A fix for the iOS orientationchange zoom bug.Script by @scottjehl, rebound by @wilto. MIT License.*/
+(function(j){var i=j.document;if(!i.querySelectorAll){return}var l=i.querySelectorAll("meta[name=viewport]")[0],a=l&&l.getAttribute("content"),h=a+", maximum-scale=1.0",d=a+", maximum-scale=10.0",g=true,c=j.orientation,k=0;if(!l){return}function f(){l.setAttribute("content",d);g=true}function b(){l.setAttribute("content",h);g=false}function e(m){c=Math.abs(j.orientation);k=Math.abs(m.gamma);if(k>8&&c===0){if(g){b()}}else{if(!g){f()}}}j.addEventListener("orientationchange",f,false);j.addEventListener("deviceorientation",e,false)})(this);
+</script>
+
+  
+</body>
+</html>
+

@@ -1,0 +1,222 @@
+
+<!DOCTYPE html>
+<!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7 ie" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="no-js lt-ie9 lt-ie8 ie" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="no-js lt-ie9 ie" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1">
+	<title>Getting Started with jBPM 4.0 - (Part I )</title>
+	<meta name="author" content="Jeff Yu">
+	<link href='/assets/themes/the-minimum/css/style.css' rel="stylesheet" media="all">
+	<link href="http://feeds.feedburner.com/" rel="alternate" title="Getting Started with jBPM 4.0 - (Part I )" type="application/atom+xml">
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/modernizr/2.0.6/modernizr.min.js"></script>
+</head>
+<body>
+
+<div id="page" class="hentry">
+	<header class="the-header">
+		<div class="unit-head">
+			<div class="unit-inner unit-head-inner">
+				<p class="logo"><a href="/">Jeff Yu @ IT</a>
+					</p>
+				<nav class="nav-global">
+					<ul>
+						<li class="index"><a href="/index.html">home</a></li>
+						<li class="archive"><a href="/archive.html">archive</a></li>
+						<li class="articles"><a href="/articles.html">articles</a></li>
+						<li class="tag"><a href="/tags.html">tags</a></li>
+                        <li class="about"><a href="/about.html">about</a></li>
+					</ul>
+				</nav>
+			</div><!-- unit-inner -->
+		</div><!-- unit-head -->
+	</header>
+	<div class="body" role="main">
+		<div class="unit-body">
+			<div class="unit-inner unit-body-inner">
+				<div class="entry-content">
+					
+<article class="unit-article layout-post">
+	<div class="unit-inner unit-article-inner">
+		<div class="content">
+			<header>
+				<div class="unit-head">
+					<div class="unit-inner unit-head-inner">
+						<h1 class="h3 entry-title">Getting Started with jBPM 4.0 - (Part I )</h1>
+						<div class="meta">
+							<p class="date-publish">
+								Date:
+								<date class="date-pub" title="2009-07-11T00:00:00+10:00" datetime="2009-07-11T00:00:00+10:00" pubdate>
+								<span class="day">11</span> -
+								<span class="month">07</span> -
+								<span class="year">2009</span>
+								</date>
+							</p>
+						</div>
+					</div><!-- unit-inner -->
+				</div><!-- unit-head -->
+			</header>
+
+			<div class="bd">
+				<div class="entry-content">				
+					<p><a href="http://processdevelopments.blogspot.com/2009/07/jbpm-40-is-out.html">jBPM 4.0 was out</a> yesterday, so I played it with a simple example, also include installing the eclipse plugin, and see the jbpm console, which I haven't tried them out before, to get a feeling about them. Below are the steps that I did, hopefully you find it helpful for you to get started.</p>
+
+<h5>Install jBPM and JBoss</h5>
+
+<ul>
+<li>Download the <a href="http://sourceforge.net/projects/jbpm/files/a%29%20jBPM%204/jbpm-4.0.zip/download">jbpm 4.0 distribution</a>.</li>
+<li>Extract it into your local directory, here mine is: /local/deploy</li>
+<li>Go to jbpm-4.0/jboss.</li>
+<li>Added the build.properties into ${user.home}/.jbpm4 directory if you want to update the default properties in the ant script. (below is what I did, I used the jboss-5.0.1.GA, and I already had the zip ball in the /local/softwares directory)</li>
+</ul>
+
+
+<blockquote><p>database=hsqldbjboss.version=5.0.1.GAjbpm.parent.dir=/local/deployjboss.distro.dir=/local/softwares</p></blockquote>
+
+<p>You can refer to <a href="http://www.jboss.org/community/wiki/jBPM4BuildingfromSource">this wiki entry</a> for detail.</p>
+
+<ol>
+<li>run following command to install jboss and jbpm.
+
+<blockquote><p>ant install.jbossant install.jbpm.into.jboss</p></blockquote></li>
+</ol>
+
+
+<p>Now, you go to the jbpm-4.0/jboss-5.0.1.GA, run:</p>
+
+<blockquote><p>bin/run.sh -c default.</p></blockquote>
+
+<p>It should start the jbpm server properly, later then we need to populate the schema and initialized sqls.</p>
+
+<h5>Import jBPM db schema and identity sql</h5>
+
+<ol>
+<li>Go to jBPM-4.0/db, run following command to populate the schema and sql.
+
+<blockquote><p>ant create.jbpm.schemaant load.example.identities</p></blockquote></li>
+</ol>
+
+
+<p>Now, you can go to http://localhost:8080/jbpm-console, use the 'alex/password' as the username and password combination, you should be able to log in the jbpm console.</p>
+
+<h5>Install the jBPM eclipse plugin</h5>
+
+<p>I won't described the steps for its installation, as it was very well documented in the <a href="http://docs.jboss.com/jbpm/v4.0/userguide/html_single/#graphicalprocessdesigner">user guide</a>.
+<em>Note</em>: it was based on the eclipse 3.5 jee distribution.</p>
+
+<p>In the next entry, we will try to build a simple process by using the Eclipse GUI.</p>
+
+					<div class="meta">
+						<ul class="list-tag list-linear">
+							<li class="list-head">tags: </li>
+							
+							
+
+
+  
+     
+    	<li><a href="/tags.html#BPM-ref">BPM <span>12</span></a></li>
+     
+    	<li><a href="/tags.html#JBoss-ref">JBoss <span>11</span></a></li>
+     
+    	<li><a href="/tags.html#jBPM-ref">jBPM <span>7</span></a></li>
+    
+  
+
+
+
+						</ul>
+					</div><!-- meta -->
+				</div><!-- entry-content -->
+				<div class="misc-content">
+					<div class="social">
+						<ul class="list-linear">
+							<li><div class="twitter-tweet"><a href="https://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="jeffyuchang" data-lang="en">Tweet</a></div></li>
+							<li><div class="twitter-follow"><a href="https://twitter.com/jeffyuchang" class="twitter-follow-button" data-show-count="false" data-lang="en"></a></div></li>
+						</ul>
+					</div>
+					
+					
+
+
+  <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_developer = 1;
+    var disqus_shortname = 'jeffyuchang'; // required: replace example with your forum shortname
+    
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+
+
+
+				</div><!-- misc-content -->
+				
+			</div><!-- bd -->
+			<footer class="unit-foot">
+				<div class="unit-inner unit-foot-inner">
+					<nav class="pagination">
+						<ul>
+							
+							<li class="prev"><a class="internal" rel="prev"  href="/2009/07/08/java-concurrency-and-scala-links" title="View java concurrency and scala links">&laquo; java concurrency and scala links</a></li>
+							
+							
+							<li class="pipe"> | </li>
+							
+							
+							<li class="next"><a class="internal" rel="next"  href="/2009/07/12/getting-started-with-jbpm-4-0-part-ii" title="View Getting Started with jBPM 4.0 (Part II)">Getting Started with jBPM 4.0 (Part II) &raquo;</a></li>
+							
+						</ul>
+					</nav>
+					<p class="gotop">
+						<a href="#page">Back to Top</a>
+					</p>
+				</div>
+			</footer>
+
+		</div><!-- content -->
+	</div><!-- unit-inner -->
+</article>
+
+
+				</div>
+			</div><!-- unit-inner -->
+		</div><!-- unit-body -->
+	</div><!-- body -->
+	<footer class="the-footer">
+		<div class="unit-foot">
+			<div class="unit-inner unit-foot-inner">
+			</div><!-- unit-foot-inner -->
+		</div><!-- unit-foot -->
+	</footer>
+</div><!-- page -->
+<script>
+	(function(d, s) {
+		var js, fjs = d.getElementsByTagName(s)[0], load = function(url, id) {
+		if (d.getElementById(id)) {return;}
+		js = d.createElement(s); js.src = url; js.id = id;
+		fjs.parentNode.insertBefore(js, fjs);
+		};
+	load('//platform.twitter.com/widgets.js', 'tweetjs');
+	// load('https://apis.google.com/js/plusone.js', 'gplus1js'); // Checkout http://j.mp/ApDgMr for usage html for this is <div class="g-plusone" data-size="medium"></div>
+	// load('//connect.facebook.net/en_US/all.js#xfbml=1', 'fbjssdk'); // Checkout http://j.mp/wZw2xR for using open graph protorol html for this is <div class="fb-like" data-href="/2009/07/11/getting-started-with-jbpm-4-0-part-i" data-send="false" data-layout="button_count" data-width="450" data-show-faces="false" data-font="verdana"></div>
+	}(document, 'script'));
+</script>
+<script>
+/*! A fix for the iOS orientationchange zoom bug.Script by @scottjehl, rebound by @wilto. MIT License.*/
+(function(j){var i=j.document;if(!i.querySelectorAll){return}var l=i.querySelectorAll("meta[name=viewport]")[0],a=l&&l.getAttribute("content"),h=a+", maximum-scale=1.0",d=a+", maximum-scale=10.0",g=true,c=j.orientation,k=0;if(!l){return}function f(){l.setAttribute("content",d);g=true}function b(){l.setAttribute("content",h);g=false}function e(m){c=Math.abs(j.orientation);k=Math.abs(m.gamma);if(k>8&&c===0){if(g){b()}}else{if(!g){f()}}}j.addEventListener("orientationchange",f,false);j.addEventListener("deviceorientation",e,false)})(this);
+</script>
+
+  
+</body>
+</html>
+

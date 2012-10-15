@@ -1,0 +1,371 @@
+
+<!DOCTYPE html>
+<!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7 ie" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="no-js lt-ie9 lt-ie8 ie" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="no-js lt-ie9 ie" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1">
+	<title>Exploring ODE part V: implemenation of scheduler-simple module.</title>
+	<meta name="author" content="Jeff Yu">
+	<link href='/assets/themes/the-minimum/css/style.css' rel="stylesheet" media="all">
+	<link href="http://feeds.feedburner.com/" rel="alternate" title="Exploring ODE part V: implemenation of scheduler-simple module." type="application/atom+xml">
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/modernizr/2.0.6/modernizr.min.js"></script>
+</head>
+<body>
+
+<div id="page" class="hentry">
+	<header class="the-header">
+		<div class="unit-head">
+			<div class="unit-inner unit-head-inner">
+				<p class="logo"><a href="/">Jeff Yu @ IT</a>
+					</p>
+				<nav class="nav-global">
+					<ul>
+						<li class="index"><a href="/index.html">home</a></li>
+						<li class="archive"><a href="/archive.html">archive</a></li>
+						<li class="articles"><a href="/articles.html">articles</a></li>
+						<li class="tag"><a href="/tags.html">tags</a></li>
+                        <li class="about"><a href="/about.html">about</a></li>
+					</ul>
+				</nav>
+			</div><!-- unit-inner -->
+		</div><!-- unit-head -->
+	</header>
+	<div class="body" role="main">
+		<div class="unit-body">
+			<div class="unit-inner unit-body-inner">
+				<div class="entry-content">
+					
+<article class="unit-article layout-post">
+	<div class="unit-inner unit-article-inner">
+		<div class="content">
+			<header>
+				<div class="unit-head">
+					<div class="unit-inner unit-head-inner">
+						<h1 class="h3 entry-title">Exploring ODE part V: implemenation of scheduler-simple module.</h1>
+						<div class="meta">
+							<p class="date-publish">
+								Date:
+								<date class="date-pub" title="2010-07-26T00:00:00+10:00" datetime="2010-07-26T00:00:00+10:00" pubdate>
+								<span class="day">26</span> -
+								<span class="month">07</span> -
+								<span class="year">2010</span>
+								</date>
+							</p>
+						</div>
+					</div><!-- unit-inner -->
+				</div><!-- unit-head -->
+			</header>
+
+			<div class="bd">
+				<div class="entry-content">				
+					<p>In Ode/RiftSaw, we make the process execution as asynchronous, which means that if you running a bpel process, we are using more than one thread to accomplish this invocation.</p>
+
+<p>And this is what the scheduler-simple module for, it takes care of putting a task into database and pull tasks out of database and how to run them. Lets make a simple example here, say your bpel process has a invoke Activity to invoke an external web service. In Ode, just right before entering invoke Activity, we've created a job that captures this invoke activity information, and store it into the database. Because once we've started Ode Bpel Server, we already started a background thread that checks this ode_job table periodically, once we've found that there is a job needs to be executed, it will load it from database, put it into memory, and then submit it to the ExecutorService for execution.</p>
+
+<p>In this blogpost, we will examine this module's architecture and important APIs.</p>
+
+<p>First is the Task API, this is the parent class for Job and SchedulerTask.</p>
+
+<div class="highlight"><pre><code class="java"><span class="kd">class</span> <span class="nc">Task</span> <span class="o">{</span>
+    <span class="cm">/** Scheduled date/time. */</span>
+    <span class="kd">public</span> <span class="kt">long</span> <span class="n">schedDate</span><span class="o">;</span>
+
+
+    <span class="n">Task</span><span class="o">(</span><span class="kt">long</span> <span class="n">schedDate</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">schedDate</span> <span class="o">=</span> <span class="n">schedDate</span><span class="o">;</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre>
+</div>
+
+
+<p>It is very simple, just had a scheduled date for its execution.
+Next, we will see the Job's API, Job is for invoking an external service and like. we've put all of important information into the JobDetail object.</p>
+
+<div class="highlight"><pre><code class="java"><span class="kd">class</span> <span class="nc">Job</span> <span class="kd">extends</span> <span class="n">Task</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">static</span> <span class="kd">final</span> <span class="n">SimpleDateFormat</span> <span class="n">DATE_FORMAT</span> <span class="o">=</span> <span class="k">new</span> <span class="n">SimpleDateFormat</span><span class="o">(</span><span class="s">&quot;yyyy-MM-dd HH:mm:ss z&quot;</span><span class="o">);</span>
+    <span class="n">String</span> <span class="n">jobId</span><span class="o">;</span>
+    <span class="kt">boolean</span> <span class="n">transacted</span><span class="o">;</span>
+    <span class="n">JobDetails</span> <span class="n">detail</span><span class="o">;</span>
+    <span class="kt">boolean</span> <span class="n">persisted</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+
+    <span class="kd">public</span> <span class="nf">Job</span><span class="o">(</span><span class="kt">long</span> <span class="n">when</span><span class="o">,</span> <span class="n">String</span> <span class="n">jobId</span><span class="o">,</span> <span class="kt">boolean</span> <span class="n">transacted</span><span class="o">,</span> <span class="n">JobDetails</span> <span class="n">jobDetail</span><span class="o">)</span> <span class="o">{</span>
+        <span class="kd">super</span><span class="o">(</span><span class="n">when</span><span class="o">);</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">jobId</span> <span class="o">=</span> <span class="n">jobId</span><span class="o">;</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">detail</span> <span class="o">=</span> <span class="n">jobDetail</span><span class="o">;</span>
+        <span class="k">this</span><span class="o">.</span><span class="na">transacted</span> <span class="o">=</span> <span class="n">transacted</span><span class="o">;</span>
+    <span class="o">}</span>
+<span class="o">....</span>
+<span class="o">}</span>
+</code></pre>
+</div>
+
+
+<p>Now, lets look at another type of Task, which is called SchedulerTask.</p>
+
+<div class="highlight"><pre><code class="java"><span class="kd">private</span> <span class="kd">abstract</span> <span class="kd">class</span> <span class="nc">SchedulerTask</span> <span class="kd">extends</span> <span class="n">Task</span> <span class="kd">implements</span> <span class="n">Runnable</span> <span class="o">{</span>
+    <span class="n">SchedulerTask</span><span class="o">(</span><span class="kt">long</span> <span class="n">schedDate</span><span class="o">)</span> <span class="o">{</span>
+        <span class="kd">super</span><span class="o">(</span><span class="n">schedDate</span><span class="o">);</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre>
+</div>
+
+
+<p>This is an abstract class, its subclasses are: LoadImmediateTask, UpgradeJobsTask, CheckStaleNodes.</p>
+
+<p>To understand these tasks, it is better that we look at what SimpleScheduler class defined. In Ode, the job design was based around three time horizons: "immediate", "near future", and "everything else".
+Immediate jobs (i.e. jobs that are about to be up) are written to the database and kept in an in-memory priority queue. When they execute, they are removed from the database. Near future jobs are placed in the database and assigned to the current node, however they are not stored in
+memory. Periodically jobs are "upgraded" from near-future to immediate status, at which point they get loaded into memory. Jobs that are further out in time, are placed in the database without a node identifer; when they are ready to be "upgraded" to near-future jobs they are assigned to one
+of the known live nodes. recovery is straight forward, with stale node identifiers being reassigned to known good nodes.</p>
+
+<p>In terms of time, we defined two variables, one is: _immediateInterval and  _nearFutureInterval.
+if a job's scheduled date is between [now, now +  _immediateInterval], it belongs to the "immediate" job.
+while if it is in [now + _immediateInterval, now +  _nearFutureInterval], it belongs to the "near future" job then.</p>
+
+<p>You can check the SimpleScheduler.doLoadImmediate() and SimpleScheduler.doUpgrade() respectively for its logic.</p>
+
+<p>Also, you may be aware that we've also had the CheckStaleNodes task, this is basically for clustering work, to
+check if there are any stale nodes, if it has, we will move the assigned jobs over to other node by updating nodeId.</p>
+
+<p>So now, we've seen different Tasks, like Jobs and SchedulerTask. Now, we will need an interface to run these Tasks, hence TaskRunner was introduced.</p>
+
+<div class="highlight"><pre><code class="java"><span class="kd">interface</span> <span class="nc">TaskRunner</span> <span class="o">{</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">runTask</span><span class="o">(</span><span class="n">Task</span> <span class="n">task</span><span class="o">);</span>
+<span class="o">}</span>
+</code></pre>
+</div>
+
+
+<p>Here is the implementation from SimpleScheduler.TaskRunner() method.</p>
+
+<div class="highlight"><pre><code class="java"><span class="kd">public</span> <span class="kt">void</span> <span class="nf">runTask</span><span class="o">(</span><span class="kd">final</span> <span class="n">Task</span> <span class="n">task</span><span class="o">)</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">task</span> <span class="k">instanceof</span> <span class="n">Job</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">Job</span> <span class="n">job</span> <span class="o">=</span> <span class="o">(</span><span class="n">Job</span><span class="o">)</span><span class="n">task</span><span class="o">;</span>
+        <span class="k">if</span><span class="o">(</span> <span class="n">job</span><span class="o">.</span><span class="na">detail</span><span class="o">.</span><span class="na">getDetailsExt</span><span class="o">().</span><span class="na">get</span><span class="o">(</span><span class="s">&quot;runnable&quot;</span><span class="o">)</span> <span class="o">!=</span> <span class="kc">null</span> <span class="o">)</span> <span class="o">{</span>
+            <span class="n">runPolledRunnable</span><span class="o">(</span><span class="n">job</span><span class="o">);</span>
+        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+            <span class="n">runJob</span><span class="o">(</span><span class="n">job</span><span class="o">);</span>
+        <span class="o">}</span>
+    <span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">task</span> <span class="k">instanceof</span> <span class="n">SchedulerTask</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">_exec</span><span class="o">.</span><span class="na">submit</span><span class="o">(</span><span class="k">new</span> <span class="n">Callable</span><span class="o">()</span> <span class="o">{</span>
+            <span class="kd">public</span> <span class="n">Void</span> <span class="nf">call</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+                <span class="k">try</span> <span class="o">{</span>
+                    <span class="o">((</span><span class="n">SchedulerTask</span><span class="o">)</span> <span class="n">task</span><span class="o">).</span><span class="na">run</span><span class="o">();</span>
+                <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">Exception</span> <span class="n">ex</span><span class="o">)</span> <span class="o">{</span>
+                    <span class="n">__log</span><span class="o">.</span><span class="na">error</span><span class="o">(</span><span class="s">&quot;Error during SchedulerTask execution&quot;</span><span class="o">,</span> <span class="n">ex</span><span class="o">);</span>
+                <span class="o">}</span>
+                <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+            <span class="o">}</span>
+        <span class="o">});</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre>
+</div>
+
+
+<p>As I said before, once we've start BpelServer, we will start a thread running, it only gets stopped only when the BpelServer is been stopped. Thats called SchedulerThread.</p>
+
+<p>In this class, basically we had following members: PriorityBlockingQueue, this is queue for the immediate execution. TaskRunner, this is the
+container for running Task. The logic for the running is quite straight forward.</p>
+
+<div class="highlight"><pre><code class="java"><span class="cm">/**</span>
+<span class="cm"> * Pop items off the todo queue, and send them to the task runner for processing.</span>
+<span class="cm"> */</span>
+<span class="kd">public</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">while</span> <span class="o">(!</span><span class="n">_done</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">_lock</span><span class="o">.</span><span class="na">lock</span><span class="o">();</span>
+        <span class="k">try</span> <span class="o">{</span>
+            <span class="kt">long</span> <span class="n">nextjob</span><span class="o">;</span>
+            <span class="k">while</span> <span class="o">((</span><span class="n">nextjob</span> <span class="o">=</span> <span class="n">nextJobTime</span><span class="o">())</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="o">&amp;&amp;!</span><span class="n">_done</span><span class="o">)</span>
+                <span class="n">_activity</span><span class="o">.</span><span class="na">await</span><span class="o">(</span><span class="n">nextjob</span><span class="o">,</span> <span class="n">TimeUnit</span><span class="o">.</span><span class="na">MILLISECONDS</span><span class="o">);</span>
+
+
+            <span class="k">if</span> <span class="o">(!</span><span class="n">_done</span> <span class="o">&amp;</span><span class="n">amp</span><span class="o">;</span><span class="n">amp</span><span class="o">;&amp;</span><span class="n">amp</span><span class="o">;</span><span class="n">amp</span><span class="o">;</span> <span class="n">nextjob</span> <span class="o">==</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+                <span class="n">Task</span> <span class="n">task</span> <span class="o">=</span> <span class="n">_todo</span><span class="o">.</span><span class="na">take</span><span class="o">();</span>
+                <span class="n">_taskrunner</span><span class="o">.</span><span class="na">runTask</span><span class="o">(</span><span class="n">task</span><span class="o">);</span>
+
+            <span class="o">}</span>
+        <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">InterruptedException</span> <span class="n">ex</span><span class="o">)</span> <span class="o">{</span>
+            <span class="o">;</span> <span class="c1">// ignore</span>
+        <span class="o">}</span> <span class="k">finally</span> <span class="o">{</span>
+            <span class="n">_lock</span><span class="o">.</span><span class="na">unlock</span><span class="o">();</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre>
+</div>
+
+
+<p>Now that we've seen all of important APIs here, we will look at how we start SimpleScheduler when ODEServer is started.
+excerpt from SimpleScheduler.start() method.</p>
+
+<div class="highlight"><pre><code class="java"><span class="kd">public</span> <span class="kd">synchronized</span> <span class="kt">void</span> <span class="nf">start</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">_running</span><span class="o">)</span>
+        <span class="k">return</span><span class="o">;</span>
+
+    <span class="k">if</span> <span class="o">(</span><span class="n">_exec</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span>
+        <span class="n">_exec</span> <span class="o">=</span> <span class="n">Executors</span><span class="o">.</span><span class="na">newCachedThreadPool</span><span class="o">();</span>
+
+    <span class="n">_todo</span><span class="o">.</span><span class="na">clearTasks</span><span class="o">(</span><span class="n">UpgradeJobsTask</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+    <span class="n">_todo</span><span class="o">.</span><span class="na">clearTasks</span><span class="o">(</span><span class="n">LoadImmediateTask</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+    <span class="n">_todo</span><span class="o">.</span><span class="na">clearTasks</span><span class="o">(</span><span class="n">CheckStaleNodes</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
+    <span class="n">_processedSinceLastLoadTask</span><span class="o">.</span><span class="na">clear</span><span class="o">();</span>
+    <span class="n">_outstandingJobs</span><span class="o">.</span><span class="na">clear</span><span class="o">();</span>
+
+    <span class="n">_knownNodes</span><span class="o">.</span><span class="na">clear</span><span class="o">();</span>
+
+    <span class="k">try</span> <span class="o">{</span>
+        <span class="n">execTransaction</span><span class="o">(</span><span class="k">new</span> <span class="n">Callable</span><span class="o">()</span> <span class="o">{</span>
+
+            <span class="kd">public</span> <span class="n">Void</span> <span class="nf">call</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+                <span class="n">_knownNodes</span><span class="o">.</span><span class="na">addAll</span><span class="o">(</span><span class="n">_db</span><span class="o">.</span><span class="na">getNodeIds</span><span class="o">());</span>
+                <span class="k">return</span> <span class="kc">null</span><span class="o">;</span>
+            <span class="o">}</span>
+
+        <span class="o">});</span>
+    <span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="n">Exception</span> <span class="n">ex</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">__log</span><span class="o">.</span><span class="na">error</span><span class="o">(</span><span class="s">&quot;Error retrieving node list.&quot;</span><span class="o">,</span> <span class="n">ex</span><span class="o">);</span>
+        <span class="k">throw</span> <span class="k">new</span> <span class="nf">ContextException</span><span class="o">(</span><span class="s">&quot;Error retrieving node list.&quot;</span><span class="o">,</span> <span class="n">ex</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="kt">long</span> <span class="n">now</span> <span class="o">=</span> <span class="n">System</span><span class="o">.</span><span class="na">currentTimeMillis</span><span class="o">();</span>
+
+    <span class="c1">// Pretend we got a heartbeat...</span>
+    <span class="k">for</span> <span class="o">(</span><span class="n">String</span> <span class="n">s</span> <span class="o">:</span> <span class="n">_knownNodes</span><span class="o">)</span> <span class="n">_lastHeartBeat</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">s</span><span class="o">,</span> <span class="n">now</span><span class="o">);</span>
+
+    <span class="c1">// schedule immediate job loading for now!</span>
+    <span class="n">_todo</span><span class="o">.</span><span class="na">enqueue</span><span class="o">(</span><span class="k">new</span> <span class="n">LoadImmediateTask</span><span class="o">(</span><span class="n">now</span><span class="o">));</span>
+
+    <span class="c1">// schedule check for stale nodes, make it random so that the nodes don&#39;t overlap.</span>
+    <span class="n">_todo</span><span class="o">.</span><span class="na">enqueue</span><span class="o">(</span><span class="k">new</span> <span class="n">CheckStaleNodes</span><span class="o">(</span><span class="n">now</span> <span class="o">+</span> <span class="n">randomMean</span><span class="o">(</span><span class="n">_staleInterval</span><span class="o">)));</span>
+
+    <span class="c1">// do the upgrade sometime (random) in the immediate interval.</span>
+    <span class="n">_todo</span><span class="o">.</span><span class="na">enqueue</span><span class="o">(</span><span class="k">new</span> <span class="n">UpgradeJobsTask</span><span class="o">(</span><span class="n">now</span> <span class="o">+</span> <span class="n">randomMean</span><span class="o">(</span><span class="n">_immediateInterval</span><span class="o">)));</span>
+
+    <span class="n">_todo</span><span class="o">.</span><span class="na">start</span><span class="o">();</span>
+    <span class="n">_running</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+<span class="o">}</span>
+</code></pre>
+</div>
+
+
+<p>Also, please noted that we had two different types of JobProcessor, one is ordinary JobProcessor, the other one is PolledRunnableJobProcessor, which is meant for running some jobs that gets run periodically.</p>
+
+					<div class="meta">
+						<ul class="list-tag list-linear">
+							<li class="list-head">tags: </li>
+							
+							
+
+
+  
+     
+    	<li><a href="/tags.html#BPM-ref">BPM <span>12</span></a></li>
+     
+    	<li><a href="/tags.html#Java-ref">Java <span>22</span></a></li>
+     
+    	<li><a href="/tags.html#ODE-ref">ODE <span>5</span></a></li>
+     
+    	<li><a href="/tags.html#RiftSaw-ref">RiftSaw <span>7</span></a></li>
+    
+  
+
+
+
+						</ul>
+					</div><!-- meta -->
+				</div><!-- entry-content -->
+				<div class="misc-content">
+					<div class="social">
+						<ul class="list-linear">
+							<li><div class="twitter-tweet"><a href="https://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="jeffyuchang" data-lang="en">Tweet</a></div></li>
+							<li><div class="twitter-follow"><a href="https://twitter.com/jeffyuchang" class="twitter-follow-button" data-show-count="false" data-lang="en"></a></div></li>
+						</ul>
+					</div>
+					
+					
+
+
+  <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_developer = 1;
+    var disqus_shortname = 'jeffyuchang'; // required: replace example with your forum shortname
+    
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+
+
+
+				</div><!-- misc-content -->
+				
+			</div><!-- bd -->
+			<footer class="unit-foot">
+				<div class="unit-inner unit-foot-inner">
+					<nav class="pagination">
+						<ul>
+							
+							<li class="prev"><a class="internal" rel="prev"  href="/2010/07/23/my-roadmap-on-mac-os-x" title="View My Roadmap on Mac OS X">&laquo; My Roadmap on Mac OS X</a></li>
+							
+							
+							<li class="pipe"> | </li>
+							
+							
+							<li class="next"><a class="internal" rel="next"  href="/2010/08/19/install-mysql-and-postgres-in-mac-os-through-macports" title="View Install Mysql and Postgres in Mac OS through MacPorts">Install Mysql and Postgres in Mac OS through MacPorts &raquo;</a></li>
+							
+						</ul>
+					</nav>
+					<p class="gotop">
+						<a href="#page">Back to Top</a>
+					</p>
+				</div>
+			</footer>
+
+		</div><!-- content -->
+	</div><!-- unit-inner -->
+</article>
+
+
+				</div>
+			</div><!-- unit-inner -->
+		</div><!-- unit-body -->
+	</div><!-- body -->
+	<footer class="the-footer">
+		<div class="unit-foot">
+			<div class="unit-inner unit-foot-inner">
+			</div><!-- unit-foot-inner -->
+		</div><!-- unit-foot -->
+	</footer>
+</div><!-- page -->
+<script>
+	(function(d, s) {
+		var js, fjs = d.getElementsByTagName(s)[0], load = function(url, id) {
+		if (d.getElementById(id)) {return;}
+		js = d.createElement(s); js.src = url; js.id = id;
+		fjs.parentNode.insertBefore(js, fjs);
+		};
+	load('//platform.twitter.com/widgets.js', 'tweetjs');
+	// load('https://apis.google.com/js/plusone.js', 'gplus1js'); // Checkout http://j.mp/ApDgMr for usage html for this is <div class="g-plusone" data-size="medium"></div>
+	// load('//connect.facebook.net/en_US/all.js#xfbml=1', 'fbjssdk'); // Checkout http://j.mp/wZw2xR for using open graph protorol html for this is <div class="fb-like" data-href="/2010/07/26/exploring-ode-part-v-implemenation-of-scheduler-simple-module" data-send="false" data-layout="button_count" data-width="450" data-show-faces="false" data-font="verdana"></div>
+	}(document, 'script'));
+</script>
+<script>
+/*! A fix for the iOS orientationchange zoom bug.Script by @scottjehl, rebound by @wilto. MIT License.*/
+(function(j){var i=j.document;if(!i.querySelectorAll){return}var l=i.querySelectorAll("meta[name=viewport]")[0],a=l&&l.getAttribute("content"),h=a+", maximum-scale=1.0",d=a+", maximum-scale=10.0",g=true,c=j.orientation,k=0;if(!l){return}function f(){l.setAttribute("content",d);g=true}function b(){l.setAttribute("content",h);g=false}function e(m){c=Math.abs(j.orientation);k=Math.abs(m.gamma);if(k>8&&c===0){if(g){b()}}else{if(!g){f()}}}j.addEventListener("orientationchange",f,false);j.addEventListener("deviceorientation",e,false)})(this);
+</script>
+
+  
+</body>
+</html>
+

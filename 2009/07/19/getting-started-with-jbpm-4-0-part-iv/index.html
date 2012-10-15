@@ -1,0 +1,252 @@
+
+<!DOCTYPE html>
+<!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7 ie" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="no-js lt-ie9 lt-ie8 ie" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="no-js lt-ie9 ie" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1">
+	<title>Getting Started with jBPM 4.0 (Part IV)</title>
+	<meta name="author" content="Jeff Yu">
+	<link href='/assets/themes/the-minimum/css/style.css' rel="stylesheet" media="all">
+	<link href="http://feeds.feedburner.com/" rel="alternate" title="Getting Started with jBPM 4.0 (Part IV)" type="application/atom+xml">
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/modernizr/2.0.6/modernizr.min.js"></script>
+</head>
+<body>
+
+<div id="page" class="hentry">
+	<header class="the-header">
+		<div class="unit-head">
+			<div class="unit-inner unit-head-inner">
+				<p class="logo"><a href="/">Jeff Yu @ IT</a>
+					</p>
+				<nav class="nav-global">
+					<ul>
+						<li class="index"><a href="/index.html">home</a></li>
+						<li class="archive"><a href="/archive.html">archive</a></li>
+						<li class="articles"><a href="/articles.html">articles</a></li>
+						<li class="tag"><a href="/tags.html">tags</a></li>
+                        <li class="about"><a href="/about.html">about</a></li>
+					</ul>
+				</nav>
+			</div><!-- unit-inner -->
+		</div><!-- unit-head -->
+	</header>
+	<div class="body" role="main">
+		<div class="unit-body">
+			<div class="unit-inner unit-body-inner">
+				<div class="entry-content">
+					
+<article class="unit-article layout-post">
+	<div class="unit-inner unit-article-inner">
+		<div class="content">
+			<header>
+				<div class="unit-head">
+					<div class="unit-inner unit-head-inner">
+						<h1 class="h3 entry-title">Getting Started with jBPM 4.0 (Part IV)</h1>
+						<div class="meta">
+							<p class="date-publish">
+								Date:
+								<date class="date-pub" title="2009-07-19T00:00:00+10:00" datetime="2009-07-19T00:00:00+10:00" pubdate>
+								<span class="day">19</span> -
+								<span class="month">07</span> -
+								<span class="year">2009</span>
+								</date>
+							</p>
+						</div>
+					</div><!-- unit-inner -->
+				</div><!-- unit-head -->
+			</header>
+
+			<div class="bd">
+				<div class="entry-content">				
+					<p>As said in <a href="/2009/07/12/getting-started-with-jbpm-4-0-part-iii">part III</a>, we will revise our example, to create the task form, and then use the jbpm console to take or complete the task.</p>
+
+<p>Firstly, because there was a minor issue related to this feature, which was reported <a href="https://jira.jboss.org/jira/browse/JBPM-2423">here in the jBPM jira</a>, we will use the 'form' attribute in the jpdl file.</p>
+
+<h5>Add the task form template</h5>
+
+<p>Here, we will create a freemarker template file, named review.ftl. the files content is as following:</p>
+
+<div class="highlight"><pre><code class="xml"><span class="nt">&lt;html&gt;</span>
+<span class="nt">&lt;body&gt;</span>
+<span class="nt">&lt;h2&gt;</span>Please review the request<span class="nt">&lt;/h2&gt;</span>
+<span class="nt">&lt;form</span> <span class="na">action=</span><span class="s">&quot;${form.action}&quot;</span> <span class="na">method=</span><span class="s">&quot;POST&quot;</span> <span class="na">enctype=</span><span class="s">&quot;multipart/form-data&quot;</span><span class="nt">&gt;</span>
+<span class="err">&lt;</span>#list outcome.values as transition&gt;
+<span class="nt">&lt;input</span> <span class="na">type=</span><span class="s">&quot;submit&quot;</span> <span class="na">name=</span><span class="s">&quot;outcome&quot;</span> <span class="na">value=</span><span class="s">&quot;${transition}&quot;</span><span class="nt">&gt;</span>
+<span class="err">&lt;</span>/#list&gt;
+<span class="nt">&lt;/form&gt;</span>
+<span class="nt">&lt;/body&gt;</span>
+<span class="nt">&lt;/html&gt;</span>
+</code></pre>
+</div>
+
+
+<h5>Add the form attribute in task node</h5>
+
+<p>As we said earlier, due to the <a href="https://jira.jboss.org/jira/browse/JBPM-2423">JBPM-2423 issue</a> in jBPM 4.0 GA, we need to update our jpdl to associate our task form template. the updated section is as following.</p>
+
+<div class="highlight"><pre><code class="xml"><span class="nt">&lt;task</span> <span class="na">assignee=</span><span class="s">&quot;alex&quot;</span> <span class="na">g=</span><span class="s">&quot;277,235,92,52&quot;</span> <span class="na">name=</span><span class="s">&quot;review&quot;</span> <span class="na">form=</span><span class="s">&quot;review.ftl&quot;</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;transition</span> <span class="na">g=</span><span class="s">&quot;-73,-25&quot;</span> <span class="na">name=</span><span class="s">&quot;approved&quot;</span> <span class="na">to=</span><span class="s">&quot;audit&quot;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/task&gt;</span>
+</code></pre>
+</div>
+
+
+<h5>Update the build.xml, to include the .ftl file in .bar archive</h5>
+
+<p>The last step would be to update our build.xml, to include the ftl template file, and also include the png file for the diagram show usage in our jbpm console.
+The updated bar package built script is:</p>
+
+<div class="highlight"><pre><code class="xml"><span class="nt">&lt;target</span> <span class="na">name=</span><span class="s">&quot;bar&quot;</span> <span class="na">depends=</span><span class="s">&quot;init&quot;</span><span class="nt">&gt;</span>
+<span class="nt">&lt;jar</span> <span class="na">destfile=</span><span class="s">&quot;${basedir}/target/helloworld.bar&quot;</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;fileset</span> <span class="na">dir=</span><span class="s">&quot;${basedir}/src/main/resources&quot;</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;include</span> <span class="na">name=</span><span class="s">&quot;*.jpdl.xml&quot;</span> <span class="nt">/&gt;</span>
+        <span class="nt">&lt;include</span> <span class="na">name=</span><span class="s">&quot;*.ftl&quot;</span> <span class="nt">/&gt;</span>
+       <span class="nt">&lt;include</span> <span class="na">name=</span><span class="s">&quot;*.png&quot;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/fileset&gt;</span>
+   <span class="nt">&lt;/jar&gt;</span>
+<span class="nt">&lt;/target&gt;</span>
+</code></pre>
+</div>
+
+
+<p>That is it, now you can re-deploy it into the jBPM server, <a href="(/2009/07/12/getting-started-with-jbpm-4-0-part-iii">like we said in the part3</a>.</p>
+
+<h5>Task Form in jBPM console</h5>
+
+<p>well, after we started the process instance, let's see the diagram and the task form in its console UI.</p>
+
+<p>On the process instance tab, click the 'diagram' button in the instance details page, you would see page as following picture.</p>
+
+<p><img src="../../../../images/diagram.png" alt="diagram" /></p>
+
+<p>Go to the task list -> Personal tasks, you would see there is a task, the name is called "review", select the task and click the 'view' button, it would pop up the task form interface as following picture:</p>
+
+<p><img src="../../../../images/taskform.gif" alt="task form" /></p>
+
+<p>Once you click the 'approved' button, the task is completed, and the whole process goes to the 'audit' state as we've defined in the jpdl file.</p>
+
+<p>So, that is all for the task form example. If you want to know more about the template, like syntax, you can refer to the <a href="http://freemarker.sourceforge.net/">freemarker webiste</a>.</p>
+
+<p>One thing interesting is that there is a console-server, which is the jbpm console talk to, the console server is responsible for exposing the jBPM service as a RESTful services. You can go to "http://localhost:8080/gwt-console-server/rs/server/resources" to see all available resources. we won't go detail in this entry, this is an interesting topic that we will cover in the future blog entry.</p>
+
+<h5>Summary</h5>
+
+<p>Until now, this 《Getting Started with jBPM 4.0》series is finished, you can download the <a href="http://people.apache.org/%7Ejeffyu/articles/artifacts/jbpm-helloworld.tar">jbpm-helloworld example as a tar ball from here</a>. Its aim is to help you get started, if you want to know more about jBPM 4.0, the <a href="http://docs.jboss.com/jbpm/v4.0/userguide/html_single/">userguide</a> and <a href="http://docs.jboss.com/jbpm/v4.0/devguide/html_single/">dev guide</a> are very good documents, and you also shouldn't miss <a href="http://www.jboss.org/index.html?module=bb&amp;amp;op=viewforum&amp;amp;f=217">the jbpm user forum</a>.</p>
+
+					<div class="meta">
+						<ul class="list-tag list-linear">
+							<li class="list-head">tags: </li>
+							
+							
+
+
+  
+     
+    	<li><a href="/tags.html#BPM-ref">BPM <span>12</span></a></li>
+     
+    	<li><a href="/tags.html#Java-ref">Java <span>22</span></a></li>
+     
+    	<li><a href="/tags.html#JBoss-ref">JBoss <span>11</span></a></li>
+     
+    	<li><a href="/tags.html#jBPM-ref">jBPM <span>7</span></a></li>
+    
+  
+
+
+
+						</ul>
+					</div><!-- meta -->
+				</div><!-- entry-content -->
+				<div class="misc-content">
+					<div class="social">
+						<ul class="list-linear">
+							<li><div class="twitter-tweet"><a href="https://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="jeffyuchang" data-lang="en">Tweet</a></div></li>
+							<li><div class="twitter-follow"><a href="https://twitter.com/jeffyuchang" class="twitter-follow-button" data-show-count="false" data-lang="en"></a></div></li>
+						</ul>
+					</div>
+					
+					
+
+
+  <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_developer = 1;
+    var disqus_shortname = 'jeffyuchang'; // required: replace example with your forum shortname
+    
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+
+
+
+				</div><!-- misc-content -->
+				
+			</div><!-- bd -->
+			<footer class="unit-foot">
+				<div class="unit-inner unit-foot-inner">
+					<nav class="pagination">
+						<ul>
+							
+							<li class="prev"><a class="internal" rel="prev"  href="/2009/07/14/ws-security" title="View 浅谈ws-security: 加密,签名,证书等">&laquo; 浅谈ws-security: 加密,签名,证书等</a></li>
+							
+							
+							<li class="pipe"> | </li>
+							
+							
+							<li class="next"><a class="internal" rel="next"  href="/2009/07/22/updates-on-jboss-esb" title="View Updates on JBoss ESB.">Updates on JBoss ESB. &raquo;</a></li>
+							
+						</ul>
+					</nav>
+					<p class="gotop">
+						<a href="#page">Back to Top</a>
+					</p>
+				</div>
+			</footer>
+
+		</div><!-- content -->
+	</div><!-- unit-inner -->
+</article>
+
+
+				</div>
+			</div><!-- unit-inner -->
+		</div><!-- unit-body -->
+	</div><!-- body -->
+	<footer class="the-footer">
+		<div class="unit-foot">
+			<div class="unit-inner unit-foot-inner">
+			</div><!-- unit-foot-inner -->
+		</div><!-- unit-foot -->
+	</footer>
+</div><!-- page -->
+<script>
+	(function(d, s) {
+		var js, fjs = d.getElementsByTagName(s)[0], load = function(url, id) {
+		if (d.getElementById(id)) {return;}
+		js = d.createElement(s); js.src = url; js.id = id;
+		fjs.parentNode.insertBefore(js, fjs);
+		};
+	load('//platform.twitter.com/widgets.js', 'tweetjs');
+	// load('https://apis.google.com/js/plusone.js', 'gplus1js'); // Checkout http://j.mp/ApDgMr for usage html for this is <div class="g-plusone" data-size="medium"></div>
+	// load('//connect.facebook.net/en_US/all.js#xfbml=1', 'fbjssdk'); // Checkout http://j.mp/wZw2xR for using open graph protorol html for this is <div class="fb-like" data-href="/2009/07/19/getting-started-with-jbpm-4-0-part-iv" data-send="false" data-layout="button_count" data-width="450" data-show-faces="false" data-font="verdana"></div>
+	}(document, 'script'));
+</script>
+<script>
+/*! A fix for the iOS orientationchange zoom bug.Script by @scottjehl, rebound by @wilto. MIT License.*/
+(function(j){var i=j.document;if(!i.querySelectorAll){return}var l=i.querySelectorAll("meta[name=viewport]")[0],a=l&&l.getAttribute("content"),h=a+", maximum-scale=1.0",d=a+", maximum-scale=10.0",g=true,c=j.orientation,k=0;if(!l){return}function f(){l.setAttribute("content",d);g=true}function b(){l.setAttribute("content",h);g=false}function e(m){c=Math.abs(j.orientation);k=Math.abs(m.gamma);if(k>8&&c===0){if(g){b()}}else{if(!g){f()}}}j.addEventListener("orientationchange",f,false);j.addEventListener("deviceorientation",e,false)})(this);
+</script>
+
+  
+</body>
+</html>
+

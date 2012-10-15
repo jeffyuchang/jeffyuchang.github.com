@@ -1,0 +1,243 @@
+
+<!DOCTYPE html>
+<!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7 ie" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="no-js lt-ie9 lt-ie8 ie" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="no-js lt-ie9 ie" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1">
+	<title>Exploring ODE Part III: architecture and modules introduction</title>
+	<meta name="author" content="Jeff Yu">
+	<link href='/assets/themes/the-minimum/css/style.css' rel="stylesheet" media="all">
+	<link href="http://feeds.feedburner.com/" rel="alternate" title="Exploring ODE Part III: architecture and modules introduction" type="application/atom+xml">
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/modernizr/2.0.6/modernizr.min.js"></script>
+</head>
+<body>
+
+<div id="page" class="hentry">
+	<header class="the-header">
+		<div class="unit-head">
+			<div class="unit-inner unit-head-inner">
+				<p class="logo"><a href="/">Jeff Yu @ IT</a>
+					</p>
+				<nav class="nav-global">
+					<ul>
+						<li class="index"><a href="/index.html">home</a></li>
+						<li class="archive"><a href="/archive.html">archive</a></li>
+						<li class="articles"><a href="/articles.html">articles</a></li>
+						<li class="tag"><a href="/tags.html">tags</a></li>
+                        <li class="about"><a href="/about.html">about</a></li>
+					</ul>
+				</nav>
+			</div><!-- unit-inner -->
+		</div><!-- unit-head -->
+	</header>
+	<div class="body" role="main">
+		<div class="unit-body">
+			<div class="unit-inner unit-body-inner">
+				<div class="entry-content">
+					
+<article class="unit-article layout-post">
+	<div class="unit-inner unit-article-inner">
+		<div class="content">
+			<header>
+				<div class="unit-head">
+					<div class="unit-inner unit-head-inner">
+						<h1 class="h3 entry-title">Exploring ODE Part III: architecture and modules introduction</h1>
+						<div class="meta">
+							<p class="date-publish">
+								Date:
+								<date class="date-pub" title="2010-01-30T00:00:00+11:00" datetime="2010-01-30T00:00:00+11:00" pubdate>
+								<span class="day">30</span> -
+								<span class="month">01</span> -
+								<span class="year">2010</span>
+								</date>
+							</p>
+						</div>
+					</div><!-- unit-inner -->
+				</div><!-- unit-head -->
+			</header>
+
+			<div class="bd">
+				<div class="entry-content">				
+					<p>In this blog entry, we will continue to explore the ODE source code. Typically, we should see the ODE's architecture in our first part of this series, but here I put it in the third part, as at that time, I was just trying to write a blog entry about the ODE's inner model about bpel file, didn't thought I will write this as a series.</p>
+
+<p>Anyway, lets see the ODE's architecture diagram, which I copied it from the <a href="http://ode.apache.org/architectural-overview.html">ODE's architecture wiki page</a>.</p>
+
+<p><img src="../../../../images/OdeArchitecture.png" alt="ODE Architecture" /></p>
+
+<p>On <a href="/2010/01/26/exploring-ode-part-i-bpel-compiler-and-its-internal-model/">our first part</a>, we look at the bpel compiler module, and we look at the JACOB framework <a href="/2010/01/27/exploring-ode-part-ii-jacob-framework/">on our second part</a>.</p>
+
+<p>In this part, we will try to make an introduction to ODE's modules:</p>
+
+<h5>ODE core modules</h5>
+
+<ul>
+<li>bpel-api: It contains the api definition for ODE, some important packages are:
+
+<ol>
+<li>org.apache.ode.bpel.iapi: this is for integration interfaces, like Axis2 module will implement it.</li>
+<li>org.apache.ode.bpel.rapi: these interfaces are for runtime api that are implemented in the bpel-runtime module.</li>
+<li>org.apache.ode.bpel.pmapi: this is for the process management.</li>
+<li>org.apache.ode.bpel.evt: this is for the event.</li>
+</ol>
+</li>
+<li>bpel-runtimes: this module takes care of implementing the Bpel's Activities, like INVOKE, REPLY, WAIT by extending the JacobRunnable Object, also it is the place that includes the internal model for compiled Bpel file, and Channel definition. You would notice that it has v1 and v2 packages, thats for ODE 1.x and ODE 2.x respectively.</li>
+<li>bpel-dao: this module is the API for DAO layer, currently, it doesn't include the DAO API for process store.</li>
+<li>dao-jpa: currently it is the openjpa implementation for DAO.</li>
+<li>dao-jpa-db: This is the DDL script for openjpa's impl.</li>
+<li>dao-hibernate, dao-hibernate-db: these two are the Hibernate's impl for DAO, and its DDL scripts.</li>
+<li>bpel-schemas: this is module that use xmlbeans to generate Java objects from xsd schemas, they are: deploymentDescriptor, (dd.xsd), pmapi.xsd (Process Management API), schedules.xsd, context.xsd.</li>
+<li>bpel-scripts: this module is having those bpel files, it is used in bpel-compiler's test case.</li>
+<li>bpel-compiler: this module is to convert the bpel file into ODE internal model for compiled bpel file.</li>
+<li>il-common: this module is the common integration layer.</li>
+<li>scheduler-simple: this module is the implementation of scheduler service.</li>
+<li>bpel-store: this is the module takes charge of storing process from the filesystem, the artifact includes deploy.xml, .bpel, wsdl artifacts.</li>
+<li>engine: this is the ode engine that uses the runtimes, dao, scheduler services.</li>
+<li>bpel-ql: bpel query language.</li>
+</ul>
+
+
+<h5>JACOB framework module:</h5>
+
+<ul>
+<li>jacob-ap</li>
+<li>jacob</li>
+</ul>
+
+
+<h5>Integration modules:</h5>
+
+<ul>
+<li>axis2 integration: axis2, axis2-war</li>
+<li>jca integration: bpel-api-jca, bpel-connector, jca-ra, jca-server</li>
+<li>jbi integration: jbi</li>
+<li>extension: extensions</li>
+</ul>
+
+
+<h5>some leftover modules are:</h5>
+
+<ul>
+<li>tools: this is for the bpelc, sendsoap command line.</li>
+<li>utils: utils for ODE project.</li>
+<li>tasks: this is tasks for buildr tool.</li>
+<li>distro: this is the module for building distro.</li>
+</ul>
+
+
+					<div class="meta">
+						<ul class="list-tag list-linear">
+							<li class="list-head">tags: </li>
+							
+							
+
+
+  
+     
+    	<li><a href="/tags.html#BPM-ref">BPM <span>12</span></a></li>
+     
+    	<li><a href="/tags.html#Java-ref">Java <span>22</span></a></li>
+     
+    	<li><a href="/tags.html#ODE-ref">ODE <span>5</span></a></li>
+     
+    	<li><a href="/tags.html#RiftSaw-ref">RiftSaw <span>7</span></a></li>
+    
+  
+
+
+
+						</ul>
+					</div><!-- meta -->
+				</div><!-- entry-content -->
+				<div class="misc-content">
+					<div class="social">
+						<ul class="list-linear">
+							<li><div class="twitter-tweet"><a href="https://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="jeffyuchang" data-lang="en">Tweet</a></div></li>
+							<li><div class="twitter-follow"><a href="https://twitter.com/jeffyuchang" class="twitter-follow-button" data-show-count="false" data-lang="en"></a></div></li>
+						</ul>
+					</div>
+					
+					
+
+
+  <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_developer = 1;
+    var disqus_shortname = 'jeffyuchang'; // required: replace example with your forum shortname
+    
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+
+
+
+				</div><!-- misc-content -->
+				
+			</div><!-- bd -->
+			<footer class="unit-foot">
+				<div class="unit-inner unit-foot-inner">
+					<nav class="pagination">
+						<ul>
+							
+							<li class="prev"><a class="internal" rel="prev"  href="/2010/01/27/exploring-ode-part-ii-jacob-framework" title="View Exploring ODE Part II: JACOB Framework">&laquo; Exploring ODE Part II: JACOB Framework</a></li>
+							
+							
+							<li class="pipe"> | </li>
+							
+							
+							<li class="next"><a class="internal" rel="next"  href="/2010/02/20/apache-cxf-web-service-development-book" title="View Apache CXF Web Service Development book.">Apache CXF Web Service Development book. &raquo;</a></li>
+							
+						</ul>
+					</nav>
+					<p class="gotop">
+						<a href="#page">Back to Top</a>
+					</p>
+				</div>
+			</footer>
+
+		</div><!-- content -->
+	</div><!-- unit-inner -->
+</article>
+
+
+				</div>
+			</div><!-- unit-inner -->
+		</div><!-- unit-body -->
+	</div><!-- body -->
+	<footer class="the-footer">
+		<div class="unit-foot">
+			<div class="unit-inner unit-foot-inner">
+			</div><!-- unit-foot-inner -->
+		</div><!-- unit-foot -->
+	</footer>
+</div><!-- page -->
+<script>
+	(function(d, s) {
+		var js, fjs = d.getElementsByTagName(s)[0], load = function(url, id) {
+		if (d.getElementById(id)) {return;}
+		js = d.createElement(s); js.src = url; js.id = id;
+		fjs.parentNode.insertBefore(js, fjs);
+		};
+	load('//platform.twitter.com/widgets.js', 'tweetjs');
+	// load('https://apis.google.com/js/plusone.js', 'gplus1js'); // Checkout http://j.mp/ApDgMr for usage html for this is <div class="g-plusone" data-size="medium"></div>
+	// load('//connect.facebook.net/en_US/all.js#xfbml=1', 'fbjssdk'); // Checkout http://j.mp/wZw2xR for using open graph protorol html for this is <div class="fb-like" data-href="/2010/01/30/exploring-ode-part-iii-architecture-and-modules-introduction" data-send="false" data-layout="button_count" data-width="450" data-show-faces="false" data-font="verdana"></div>
+	}(document, 'script'));
+</script>
+<script>
+/*! A fix for the iOS orientationchange zoom bug.Script by @scottjehl, rebound by @wilto. MIT License.*/
+(function(j){var i=j.document;if(!i.querySelectorAll){return}var l=i.querySelectorAll("meta[name=viewport]")[0],a=l&&l.getAttribute("content"),h=a+", maximum-scale=1.0",d=a+", maximum-scale=10.0",g=true,c=j.orientation,k=0;if(!l){return}function f(){l.setAttribute("content",d);g=true}function b(){l.setAttribute("content",h);g=false}function e(m){c=Math.abs(j.orientation);k=Math.abs(m.gamma);if(k>8&&c===0){if(g){b()}}else{if(!g){f()}}}j.addEventListener("orientationchange",f,false);j.addEventListener("deviceorientation",e,false)})(this);
+</script>
+
+  
+</body>
+</html>
+

@@ -1,0 +1,283 @@
+
+<!DOCTYPE html>
+<!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7 ie" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="no-js lt-ie9 lt-ie8 ie" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="no-js lt-ie9 ie" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1">
+	<title>Upgrading Hibernate 3.3.2 to Hibernate 4.0.0</title>
+	<meta name="author" content="Jeff Yu">
+	<link href='/assets/themes/the-minimum/css/style.css' rel="stylesheet" media="all">
+	<link href="http://feeds.feedburner.com/" rel="alternate" title="Upgrading Hibernate 3.3.2 to Hibernate 4.0.0" type="application/atom+xml">
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/modernizr/2.0.6/modernizr.min.js"></script>
+</head>
+<body>
+
+<div id="page" class="hentry">
+	<header class="the-header">
+		<div class="unit-head">
+			<div class="unit-inner unit-head-inner">
+				<p class="logo"><a href="/">Jeff Yu @ IT</a>
+					</p>
+				<nav class="nav-global">
+					<ul>
+						<li class="index"><a href="/index.html">home</a></li>
+						<li class="archive"><a href="/archive.html">archive</a></li>
+						<li class="articles"><a href="/articles.html">articles</a></li>
+						<li class="tag"><a href="/tags.html">tags</a></li>
+                        <li class="about"><a href="/about.html">about</a></li>
+					</ul>
+				</nav>
+			</div><!-- unit-inner -->
+		</div><!-- unit-head -->
+	</header>
+	<div class="body" role="main">
+		<div class="unit-body">
+			<div class="unit-inner unit-body-inner">
+				<div class="entry-content">
+					
+<article class="unit-article layout-post">
+	<div class="unit-inner unit-article-inner">
+		<div class="content">
+			<header>
+				<div class="unit-head">
+					<div class="unit-inner unit-head-inner">
+						<h1 class="h3 entry-title">Upgrading Hibernate 3.3.2 to Hibernate 4.0.0</h1>
+						<div class="meta">
+							<p class="date-publish">
+								Date:
+								<date class="date-pub" title="2011-09-08T00:00:00+10:00" datetime="2011-09-08T00:00:00+10:00" pubdate>
+								<span class="day">08</span> -
+								<span class="month">09</span> -
+								<span class="year">2011</span>
+								</date>
+							</p>
+						</div>
+					</div><!-- unit-inner -->
+				</div><!-- unit-head -->
+			</header>
+
+			<div class="bd">
+				<div class="entry-content">				
+					<p>As you may know, <a href="http://www.jboss.org/jbossas">JBoss AS 7</a> is incredible fast and low-memory, and it comes with Hibernate 4.0.0 by default. Since AS 7.0.1, it is easy for you to support both Hibernate 3.x  and Hibernate 4.0.0 under JBoss AS, thanks to the modular classpath here. If you want to run Hibernate 3.x under AS7 along with Hibernate 4, you should check out <a href="http://in.relation.to/Bloggers/UsingADifferentPersistenceProviderWithAS701">this blog entry</a> and <a href="https://docs.jboss.org/author/display/AS7/JPA+Reference+Guide">this documentation</a>.</p>
+
+<p>In <a href="https://github.com/riftsaw">RiftSaw 3</a> development, we are taking this opportunity to upgrading its JPA layer from JPA 1.0 to JPA 2.0, as JPA 2.0 is back compatible, it shouldn't be an big issue. However, we've implemented the <a href="http://www.docjar.com/html/api/org/hibernate/connection/ConnectionProvider.java.html">ConnectionProvider</a> and <a href="http://www.docjar.com/html/api/org/hibernate/transaction/TransactionManagerLookup.java.html">TransactionManagerLookup</a> interfaces, since we've created the Datasource and TransactionManager on our own, we need to implement these two interfaces to ask Hibernate to use our own one.</p>
+
+<p>In Hibernate 4.x, the whole package has been split into three categories, API/Impl/SPI.  So the ConnectionProvider class has been re-packaged at: <strong>org.hibernate.service.jdbc.connections.spi.ConnectionProvider</strong>, if you see the <a href="http://grepcode.com/file/repo1.maven.org/maven2/org.hibernate/hibernate-core/4.0.0.Beta3/org/hibernate/service/jta/platform/internal/JBossAppServerJtaPlatform.java">internal implementation</a> of this, you would also notice that it also implements the <a href="http://grepcode.com/file/repository.jboss.org/nexus/content/repositories/releases/org.hibernate/hibernate-core/4.0.0.Alpha2/org/hibernate/service/spi/Configurable.java">Configurable</a> and <a href="http://grepcode.com/file/repository.jboss.org/nexus/content/repositories/releases/org.hibernate/hibernate-core/4.0.0.Alpha2/org/hibernate/service/spi/Stoppable.java?av=f">Stoppable</a>. The Configurable interface allows you to access to the Hibernate's properties, which is kept as Map. It is much like Spring's BeanNameAware interface, where you get to access to the BeanName. So below is the code snippet that I used for my ConnectionProvider.</p>
+
+<div class="highlight"><pre><code class="java"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">DataSourceConnectionProvider</span> <span class="kd">implements</span> <span class="n">ConnectionProvider</span><span class="o">,</span> <span class="n">Configurable</span><span class="o">,</span> <span class="n">Stoppable</span>  <span class="o">{</span>
+
+  <span class="kd">private</span> <span class="n">Properties</span> <span class="n">_props</span><span class="o">;</span>
+
+  <span class="kd">private</span> <span class="kt">boolean</span> <span class="n">available</span> <span class="o">=</span> <span class="kc">true</span><span class="o">;</span>
+
+  <span class="kd">public</span> <span class="nf">DataSourceConnectionProvider</span><span class="o">()</span> <span class="o">{</span>
+  <span class="o">}</span>
+
+  <span class="nd">@SuppressWarnings</span><span class="o">(</span> <span class="o">{</span><span class="s">&quot;unchecked&quot;</span><span class="o">})</span>
+  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">configure</span><span class="o">(</span><span class="n">Map</span> <span class="n">properties</span><span class="o">)</span> <span class="o">{</span>
+     <span class="n">_props</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Properties</span><span class="o">();</span>
+     <span class="n">_props</span><span class="o">.</span><span class="na">putAll</span><span class="o">(</span><span class="n">properties</span><span class="o">);</span>
+  <span class="o">}</span>
+
+  <span class="kd">public</span> <span class="n">Connection</span> <span class="nf">getConnection</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">SQLException</span> <span class="o">{</span>
+    <span class="k">if</span> <span class="o">(!</span><span class="n">available</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">throw</span> <span class="k">new</span> <span class="nf">HibernateException</span><span class="o">(</span> <span class="o">&amp;</span><span class="n">quot</span><span class="o">;</span><span class="n">Provider</span> <span class="n">is</span> <span class="n">closed</span><span class="o">!&amp;</span><span class="n">quot</span><span class="o">;</span> <span class="o">);</span>
+    <span class="o">}</span>
+    <span class="n">Connection</span> <span class="n">c</span> <span class="o">=</span> <span class="n">HibernateUtil</span><span class="o">.</span><span class="na">getConnection</span><span class="o">(</span><span class="n">_props</span><span class="o">);</span>
+    <span class="n">DbIsolation</span><span class="o">.</span><span class="na">setIsolationLevel</span><span class="o">(</span><span class="n">c</span><span class="o">);</span>
+    <span class="k">return</span> <span class="n">c</span><span class="o">;</span>
+  <span class="o">}</span>
+
+  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">closeConnection</span><span class="o">(</span><span class="n">Connection</span> <span class="n">con</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">SQLException</span> <span class="o">{</span>
+    <span class="n">con</span><span class="o">.</span><span class="na">close</span><span class="o">();</span>
+  <span class="o">}</span>
+
+  <span class="kd">public</span> <span class="kt">boolean</span> <span class="nf">supportsAggressiveRelease</span><span class="o">()</span> <span class="o">{</span>
+    <span class="k">return</span> <span class="kc">true</span><span class="o">;</span>
+  <span class="o">}</span>
+
+  <span class="kd">public</span> <span class="kt">boolean</span> <span class="nf">isUnwrappableAs</span><span class="o">(</span><span class="n">Class</span> <span class="n">unwrapType</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">ConnectionProvider</span><span class="o">.</span><span class="na">class</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">unwrapType</span><span class="o">)</span> <span class="o">||</span>
+                <span class="n">DataSourceConnectionProvider</span><span class="o">.</span><span class="na">class</span><span class="o">.</span><span class="na">isAssignableFrom</span><span class="o">(</span><span class="n">unwrapType</span><span class="o">);</span>
+  <span class="o">}</span>
+
+  <span class="nd">@SuppressWarnings</span><span class="o">(</span> <span class="o">{&amp;</span><span class="n">quot</span><span class="o">;</span><span class="n">unchecked</span><span class="o">&amp;</span><span class="n">quot</span><span class="o">;})</span>
+  <span class="kd">public</span>  <span class="n">T</span> <span class="nf">unwrap</span><span class="o">(</span><span class="n">Class</span> <span class="n">unwrapType</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">ConnectionProvider</span><span class="o">.</span><span class="na">class</span><span class="o">.</span><span class="na">equals</span><span class="o">(</span><span class="n">unwrapType</span><span class="o">)</span> <span class="o">||</span>
+                <span class="n">DataSourceConnectionProvider</span><span class="o">.</span><span class="na">class</span><span class="o">.</span><span class="na">isAssignableFrom</span><span class="o">(</span><span class="n">unwrapType</span><span class="o">))</span> <span class="o">{</span>
+            <span class="k">return</span> <span class="o">(</span><span class="n">T</span><span class="o">)</span> <span class="k">this</span><span class="o">;</span>
+        <span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+            <span class="k">throw</span> <span class="k">new</span> <span class="nf">UnknownUnwrapTypeException</span><span class="o">(</span> <span class="n">unwrapType</span> <span class="o">);</span>
+        <span class="o">}</span>
+  <span class="o">}</span>
+
+  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">stop</span><span class="o">()</span> <span class="o">{</span>
+    <span class="n">available</span> <span class="o">=</span> <span class="kc">false</span><span class="o">;</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre>
+</div>
+
+
+<p>For the TransactionManagerLookup interface, you would get WARN  saying this API has been deprecated ( I believe it has been deprecated before 4.x, but I didn't get a chance to upgrade it until now), we should implement the <strong>org.hibernate.service.jta.platform.spi.JtaPlatform</strong> SPI instead, and set it to the 'hibernate.transaction.jta.platform' property. Instead of having a class that implement the JtaPlatform SPI directly, I've subclassed it from the  <a href="http://grepcode.com/file/repo1.maven.org/maven2/org.hibernate/hibernate-core/4.0.0.Beta5/org/hibernate/service/jta/platform/internal/AbstractJtaPlatform.java#AbstractJtaPlatform">AbstractJtaPlatform</a> class, so that I've only needed to override two interfaces. Below is the code snippet for my custom JtaPlatform impl.</p>
+
+<div class="highlight"><pre><code class="java"><span class="cm">/**</span>
+<span class="cm"> *</span>
+<span class="cm"> * uses {@link HibernateUtil} to obtain the JTA {@link TransactionManager} object.</span>
+<span class="cm"> *</span>
+<span class="cm"> * @author Jeff Yu</span>
+<span class="cm"> *</span>
+<span class="cm"> */</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">OdeJtaPlatform</span> <span class="kd">extends</span> <span class="n">AbstractJtaPlatform</span> <span class="o">{</span>
+
+    <span class="kd">private</span> <span class="n">Properties</span> <span class="n">properties</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Properties</span><span class="o">();</span>
+
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">configure</span><span class="o">(</span><span class="n">Map</span> <span class="n">configValues</span><span class="o">)</span> <span class="o">{</span>
+        <span class="kd">super</span><span class="o">.</span><span class="na">configure</span><span class="o">(</span><span class="n">configValues</span><span class="o">);</span>
+        <span class="n">properties</span><span class="o">.</span><span class="na">putAll</span><span class="o">(</span><span class="n">configValues</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">protected</span> <span class="n">TransactionManager</span> <span class="nf">locateTransactionManager</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">HibernateUtil</span><span class="o">.</span><span class="na">getTransactionManager</span><span class="o">(</span><span class="n">properties</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">protected</span> <span class="n">UserTransaction</span> <span class="nf">locateUserTransaction</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">throw</span> <span class="k">new</span> <span class="nf">UnsupportedOperationException</span><span class="o">(&amp;</span><span class="n">quot</span><span class="o">;</span><span class="n">locateUserTransaction</span> <span class="n">is</span> <span class="n">not</span> <span class="n">supported</span><span class="o">.</span> <span class="n">Use</span> <span class="n">the</span> <span class="n">locateTransactionManager</span> <span class="n">instead</span><span class="o">.&amp;</span><span class="n">quot</span><span class="o">;);</span>
+    <span class="o">}</span>
+
+<span class="o">}</span>
+</code></pre>
+</div>
+
+
+<p>And then when you create your entityManagerFactory, remember to pass the following properties in.</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="n">props</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="no">Environment</span><span class="o">.</span><span class="n">CONNECTION_PROVIDER</span><span class="p">,</span> <span class="no">DataSourceConnectionProvider</span><span class="o">.</span><span class="n">class</span><span class="o">.</span><span class="n">getName</span><span class="p">());</span>
+<span class="n">props</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="no">Environment</span><span class="o">.</span><span class="n">JTA_PLATFORM</span><span class="p">,</span> <span class="no">OdeJtaPlatform</span><span class="o">.</span><span class="n">class</span><span class="o">.</span><span class="n">getName</span><span class="p">());</span>
+</code></pre>
+</div>
+
+
+<p>Done, the custom ConnectionProvider and JtaPlatform implementation should be all set now.</p>
+
+<p>Hope this will help you do the Hibernate upgrade at some point. Here, I'd like to thanks <a href="http://in.relation.to/Bloggers/StrongLiu">Strong Liu</a> to send the helpful links to me on this upgrading. :-)</p>
+
+					<div class="meta">
+						<ul class="list-tag list-linear">
+							<li class="list-head">tags: </li>
+							
+							
+
+
+  
+     
+    	<li><a href="/tags.html#Hibernate-ref">Hibernate <span>1</span></a></li>
+     
+    	<li><a href="/tags.html#Java-ref">Java <span>22</span></a></li>
+     
+    	<li><a href="/tags.html#JBoss-ref">JBoss <span>11</span></a></li>
+     
+    	<li><a href="/tags.html#RiftSaw-ref">RiftSaw <span>7</span></a></li>
+    
+  
+
+
+
+						</ul>
+					</div><!-- meta -->
+				</div><!-- entry-content -->
+				<div class="misc-content">
+					<div class="social">
+						<ul class="list-linear">
+							<li><div class="twitter-tweet"><a href="https://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="jeffyuchang" data-lang="en">Tweet</a></div></li>
+							<li><div class="twitter-follow"><a href="https://twitter.com/jeffyuchang" class="twitter-follow-button" data-show-count="false" data-lang="en"></a></div></li>
+						</ul>
+					</div>
+					
+					
+
+
+  <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_developer = 1;
+    var disqus_shortname = 'jeffyuchang'; // required: replace example with your forum shortname
+    
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+
+
+
+				</div><!-- misc-content -->
+				
+			</div><!-- bd -->
+			<footer class="unit-foot">
+				<div class="unit-inner unit-foot-inner">
+					<nav class="pagination">
+						<ul>
+							
+							<li class="prev"><a class="internal" rel="prev"  href="/2010/09/28/gettingusing-services-deployed-in-jboss-as-5-x" title="View Getting/Using services deployed in JBoss AS 5.x">&laquo; Getting/Using services deployed in JBoss AS 5.x</a></li>
+							
+							
+							<li class="pipe"> | </li>
+							
+							
+							<li class="next"><a class="internal" rel="next"  href="/2011/09/17/functional-programming-for-java-developer-book-review" title="View "Functional Programming for Java Developer" book review.">"Functional Programming for Java Developer" book review. &raquo;</a></li>
+							
+						</ul>
+					</nav>
+					<p class="gotop">
+						<a href="#page">Back to Top</a>
+					</p>
+				</div>
+			</footer>
+
+		</div><!-- content -->
+	</div><!-- unit-inner -->
+</article>
+
+
+				</div>
+			</div><!-- unit-inner -->
+		</div><!-- unit-body -->
+	</div><!-- body -->
+	<footer class="the-footer">
+		<div class="unit-foot">
+			<div class="unit-inner unit-foot-inner">
+			</div><!-- unit-foot-inner -->
+		</div><!-- unit-foot -->
+	</footer>
+</div><!-- page -->
+<script>
+	(function(d, s) {
+		var js, fjs = d.getElementsByTagName(s)[0], load = function(url, id) {
+		if (d.getElementById(id)) {return;}
+		js = d.createElement(s); js.src = url; js.id = id;
+		fjs.parentNode.insertBefore(js, fjs);
+		};
+	load('//platform.twitter.com/widgets.js', 'tweetjs');
+	// load('https://apis.google.com/js/plusone.js', 'gplus1js'); // Checkout http://j.mp/ApDgMr for usage html for this is <div class="g-plusone" data-size="medium"></div>
+	// load('//connect.facebook.net/en_US/all.js#xfbml=1', 'fbjssdk'); // Checkout http://j.mp/wZw2xR for using open graph protorol html for this is <div class="fb-like" data-href="/2011/09/08/upgrading-hibernate-3-3-2-to-hibernate-4-0-0" data-send="false" data-layout="button_count" data-width="450" data-show-faces="false" data-font="verdana"></div>
+	}(document, 'script'));
+</script>
+<script>
+/*! A fix for the iOS orientationchange zoom bug.Script by @scottjehl, rebound by @wilto. MIT License.*/
+(function(j){var i=j.document;if(!i.querySelectorAll){return}var l=i.querySelectorAll("meta[name=viewport]")[0],a=l&&l.getAttribute("content"),h=a+", maximum-scale=1.0",d=a+", maximum-scale=10.0",g=true,c=j.orientation,k=0;if(!l){return}function f(){l.setAttribute("content",d);g=true}function b(){l.setAttribute("content",h);g=false}function e(m){c=Math.abs(j.orientation);k=Math.abs(m.gamma);if(k>8&&c===0){if(g){b()}}else{if(!g){f()}}}j.addEventListener("orientationchange",f,false);j.addEventListener("deviceorientation",e,false)})(this);
+</script>
+
+  
+</body>
+</html>
+

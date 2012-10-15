@@ -1,0 +1,363 @@
+
+<!DOCTYPE html>
+<!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7 ie" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="no-js lt-ie9 lt-ie8 ie" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="no-js lt-ie9 ie" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1">
+	<title>Exploring ODE Part II: JACOB Framework</title>
+	<meta name="author" content="Jeff Yu">
+	<link href='/assets/themes/the-minimum/css/style.css' rel="stylesheet" media="all">
+	<link href="http://feeds.feedburner.com/" rel="alternate" title="Exploring ODE Part II: JACOB Framework" type="application/atom+xml">
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/modernizr/2.0.6/modernizr.min.js"></script>
+</head>
+<body>
+
+<div id="page" class="hentry">
+	<header class="the-header">
+		<div class="unit-head">
+			<div class="unit-inner unit-head-inner">
+				<p class="logo"><a href="/">Jeff Yu @ IT</a>
+					</p>
+				<nav class="nav-global">
+					<ul>
+						<li class="index"><a href="/index.html">home</a></li>
+						<li class="archive"><a href="/archive.html">archive</a></li>
+						<li class="articles"><a href="/articles.html">articles</a></li>
+						<li class="tag"><a href="/tags.html">tags</a></li>
+                        <li class="about"><a href="/about.html">about</a></li>
+					</ul>
+				</nav>
+			</div><!-- unit-inner -->
+		</div><!-- unit-head -->
+	</header>
+	<div class="body" role="main">
+		<div class="unit-body">
+			<div class="unit-inner unit-body-inner">
+				<div class="entry-content">
+					
+<article class="unit-article layout-post">
+	<div class="unit-inner unit-article-inner">
+		<div class="content">
+			<header>
+				<div class="unit-head">
+					<div class="unit-inner unit-head-inner">
+						<h1 class="h3 entry-title">Exploring ODE Part II: JACOB Framework</h1>
+						<div class="meta">
+							<p class="date-publish">
+								Date:
+								<date class="date-pub" title="2010-01-27T00:00:00+11:00" datetime="2010-01-27T00:00:00+11:00" pubdate>
+								<span class="day">27</span> -
+								<span class="month">01</span> -
+								<span class="year">2010</span>
+								</date>
+							</p>
+						</div>
+					</div><!-- unit-inner -->
+				</div><!-- unit-head -->
+			</header>
+
+			<div class="bd">
+				<div class="entry-content">				
+					<p>In this blog entry, we will look at the ODE's jacob framework, which is of a library taking care of concurrency processing. ODE use this lib underlying to solve the concurrency problem, ODE has <a href="http://ode.apache.org/jacob.html">a very good wiki</a> explains about this framework, but here I would like to highlight some concepts and introduce a simple example in the end.</p>
+
+<p>Firstly, I am reusing the wiki page's example. Say we have a following process.</p>
+
+<div class="highlight"><pre><code class="java"><span class="mi">1</span><span class="o">.</span><span class="na">invoke</span>
+<span class="mi">2</span><span class="o">.</span><span class="na">receive</span>
+<span class="mi">3</span><span class="o">.</span><span class="na">wait</span>
+<span class="mi">4</span><span class="o">.</span><span class="na">invoke</span>
+</code></pre>
+</div>
+
+
+<p>and we have 2 parallel execution of the process, without Jacob framework the execution would be:</p>
+
+<div class="highlight"><pre><code class="java"><span class="mi">1</span><span class="o">.</span> <span class="n">Invoke1</span>
+<span class="mi">2</span><span class="o">.</span> <span class="n">Receive1</span>
+<span class="mi">3</span><span class="o">.</span> <span class="n">Wait1</span>
+<span class="mi">4</span><span class="o">.</span> <span class="n">Invoke1</span>
+<span class="mi">5</span><span class="o">.</span> <span class="n">Invoke2</span>
+<span class="mi">6</span><span class="o">.</span> <span class="n">Receive2</span>
+<span class="mi">7</span><span class="o">.</span> <span class="n">Wait2</span>
+<span class="mi">8</span><span class="o">.</span> <span class="n">Invoke2</span>
+</code></pre>
+</div>
+
+
+<p>so the above is totally sequentially, no concurrency at all. With the jacob framework, we might see following execution order.</p>
+
+<div class="highlight"><pre><code class="java"><span class="mi">1</span><span class="o">.</span> <span class="n">Invoke1</span>
+<span class="mi">5</span><span class="o">.</span> <span class="n">Invoke2</span>
+<span class="mi">2</span><span class="o">.</span> <span class="n">Receive1</span>
+<span class="mi">3</span><span class="o">.</span> <span class="n">Wait1</span>
+<span class="mi">6</span><span class="o">.</span> <span class="n">Receive2</span>
+<span class="mi">7</span><span class="o">.</span> <span class="n">Wait2</span>
+<span class="mi">4</span><span class="o">.</span> <span class="n">Invoke1</span>
+<span class="mi">8</span><span class="o">.</span> <span class="n">Invoke2</span>
+</code></pre>
+</div>
+
+
+<p>From a client standpoint, we've achieved concurrency of execution even with one thread.</p>
+
+<p>Now, we will see following concepts in jacob:</p>
+
+<h5>JacobRunnable, JacobObject</h5>
+
+<p>In the wiki page, the JacobRunnable, JacobObject is described as a simple closure. Just like above example shows, here we abstract the action like 'Invoke, Receive' etc as a JacobRunnable object. Personally I also see JacobRunnable as a command pattern, which implements the run method.</p>
+
+<h5>Channel</h5>
+
+<p>Once we have had the JacobRunnable object, how do we connect JacobObject and ChannelListener? Here is where Channel comes to play, we can see that JacobRunnable as one end of the channel, and ChannelListener as the other end of the channel. The Channel implementation is used JDK's dynamic proxy, you can see it from <em>ChannelFactory</em>.</p>
+
+<p>For every JacobRunnable or ChannelListener, it will take a Channel class in. It is not very useful if have the JacobRunnable without means to communicate.</p>
+
+<h5>ChannelListener</h5>
+
+<p>In the wiki page, it is referred as MLs (MethodList), but I'd prefer to call it as Listener. With introduction of <em>Channel</em> object, we are able to pass the Channel object into our next activity or child activity, but we need to have a listener mechanism for the parent activity so that once the child activity finished, it is able to get notified and continues the flow.</p>
+
+<h5>@ChannelType annotion</h5>
+
+<p>In the Jacob, we are using the '@ChannelType' annotation to generate the Channel and ChannelListener interfaces in the compile time.</p>
+
+<h5>JacobVPU, ExecutionQueueImpl</h5>
+
+<p>As wiki page said, here are the responsibilities of JacboVPU and ExecutionQueueImpl.
+1) JacobVPU is the place of Jacob processing.
+2) ExecutionQueueImpl is the container for all artifacts (mostly channels and reactions) managed by JacobVPU.
+3) JacobVPU is also responsible for persisting its internal state, like serialize or de-serialize the object.
+4) Continuations (and hence JacobRunnables) don't "stay" in the VPU queues. They just get popped, executed and that's it.</p>
+
+<p>Now, I will introduce an example that works with Jacob API to accomplish the above example. we are having three JacobObjects(Continuation), they are INVOKE, RECEIVE, WAIT. But for the simplicity purpose, I will just have INVOKE and RECEIVE. Also we will add a channel for their communication, I called it Demo, here is the code for Demo Channel.</p>
+
+<div class="highlight"><pre><code class="java"><span class="nd">@ChannelType</span>
+<span class="kd">public</span> <span class="kd">interface</span> <span class="nc">Demo</span> <span class="o">{</span>
+<span class="kd">public</span> <span class="kt">void</span> <span class="nf">onSuccess</span><span class="o">(</span><span class="n">String</span> <span class="n">successInfo</span><span class="o">);</span>
+<span class="kd">public</span> <span class="kt">void</span> <span class="nf">onFailure</span><span class="o">(</span><span class="n">String</span> <span class="n">errorString</span><span class="o">);</span>
+<span class="o">}</span>
+</code></pre>
+</div>
+
+
+<p>as you read from the code, we are having two methods, one for successful case, the other is for failure. use either the maven tool or buildr, you would see the generated classes for this interface, they are DemoChannel and DemoChannelListener.</p>
+
+<p>Next, we will see actions.</p>
+
+<div class="highlight"><pre><code class="java"><span class="kd">static</span> <span class="kd">class</span> <span class="nc">INVOKE</span> <span class="kd">extends</span> <span class="n">JacobRunnable</span> <span class="o">{</span>
+<span class="kd">private</span> <span class="n">DemoChannel</span> <span class="n">_channel</span><span class="o">;</span>
+
+<span class="kd">public</span> <span class="nf">INVOKE</span><span class="o">(</span><span class="n">DemoChannel</span> <span class="n">channel</span><span class="o">)</span> <span class="o">{</span>
+<span class="n">_channel</span> <span class="o">=</span> <span class="n">channel</span><span class="o">;</span>
+<span class="o">}</span>
+
+<span class="nd">@Override</span>
+<span class="kd">public</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span> <span class="o">{</span>
+<span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;INVOKE Activity&quot;</span><span class="o">);</span>
+
+<span class="n">DemoChannel</span> <span class="n">demoChannel2</span> <span class="o">=</span> <span class="n">newChannel</span><span class="o">(</span><span class="n">DemoChannel</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="s">&quot;demo2&quot;</span><span class="o">);</span>
+<span class="n">instance</span><span class="o">(</span><span class="k">new</span> <span class="n">RECIEVE</span><span class="o">(</span><span class="n">demoChannel2</span><span class="o">));</span>
+<span class="n">object</span><span class="o">(</span><span class="k">new</span> <span class="n">DemoChannelListener</span><span class="o">(</span><span class="n">demoChannel2</span><span class="o">)</span> <span class="o">{</span>
+<span class="kd">public</span> <span class="kt">void</span> <span class="nf">onSuccess</span><span class="o">(</span><span class="n">String</span> <span class="n">successInfo</span><span class="o">)</span> <span class="o">{</span>
+ <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">successInfo</span><span class="o">);</span>
+ <span class="n">_channel</span><span class="o">.</span><span class="na">onSuccess</span><span class="o">(</span><span class="s">&quot;INVOKE Done...&quot;</span><span class="o">);</span>
+<span class="o">}</span>
+
+<span class="kd">public</span> <span class="kt">void</span> <span class="nf">onFailure</span><span class="o">(</span><span class="n">String</span> <span class="n">errorString</span><span class="o">)</span> <span class="o">{</span>
+ <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">errorString</span><span class="o">);</span>
+<span class="o">}</span>
+<span class="o">});</span>
+
+<span class="o">}</span>
+<span class="o">}</span>
+
+<span class="kd">static</span> <span class="kd">class</span> <span class="nc">RECIEVE</span> <span class="kd">extends</span> <span class="n">JacobRunnable</span> <span class="o">{</span>
+<span class="kd">private</span> <span class="n">DemoChannel</span> <span class="n">_demoChannel</span><span class="o">;</span>
+
+<span class="kd">public</span> <span class="nf">RECIEVE</span><span class="o">(</span><span class="n">DemoChannel</span> <span class="n">demoChannel</span><span class="o">)</span> <span class="o">{</span>
+<span class="n">_demoChannel</span> <span class="o">=</span> <span class="n">demoChannel</span><span class="o">;</span>
+<span class="o">}</span>
+
+<span class="nd">@Override</span>
+<span class="kd">public</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span> <span class="o">{</span>
+<span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;Receive Activity&quot;</span><span class="o">);</span>
+<span class="n">_demoChannel</span><span class="o">.</span><span class="na">onSuccess</span><span class="o">(</span><span class="s">&quot;RECEIVE success...&quot;</span><span class="o">);</span>
+<span class="o">}</span>
+<span class="o">}</span>
+</code></pre>
+</div>
+
+
+<p>For this example, I will add another action to start our process, it is called Process.</p>
+
+<div class="highlight"><pre><code class="java"><span class="kd">static</span> <span class="kd">class</span> <span class="nc">Process</span> <span class="kd">extends</span> <span class="n">JacobRunnable</span> <span class="o">{</span>
+
+<span class="nd">@Override</span>
+<span class="kd">public</span> <span class="kt">void</span> <span class="nf">run</span><span class="o">()</span> <span class="o">{</span>
+<span class="n">DemoChannel</span> <span class="n">channel</span> <span class="o">=</span> <span class="n">newChannel</span><span class="o">(</span><span class="n">DemoChannel</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="s">&quot;demo&quot;</span><span class="o">);</span>
+<span class="n">instance</span><span class="o">(</span><span class="k">new</span> <span class="n">INVOKE</span><span class="o">(</span><span class="n">channel</span><span class="o">));</span>
+<span class="n">object</span><span class="o">(</span><span class="k">new</span> <span class="n">DemoChannelListener</span><span class="o">(</span><span class="n">channel</span><span class="o">)</span> <span class="o">{</span>
+<span class="kd">public</span> <span class="kt">void</span> <span class="nf">onSuccess</span><span class="o">(</span><span class="n">String</span> <span class="n">successInfo</span><span class="o">)</span> <span class="o">{</span>
+ <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">successInfo</span><span class="o">);</span>
+ <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;Process Done&quot;</span><span class="o">);</span>
+<span class="o">}</span>
+
+<span class="kd">public</span> <span class="kt">void</span> <span class="nf">onFailure</span><span class="o">(</span><span class="n">String</span> <span class="n">errorString</span><span class="o">)</span> <span class="o">{</span>
+ <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">errorString</span><span class="o">);</span>
+<span class="o">}</span>
+<span class="o">});</span>
+<span class="o">}</span>
+
+<span class="o">}</span>
+</code></pre>
+</div>
+
+
+<p>We will talk from Process class, basically, we've created a DemoChannel, and then we use 'instance(...)' method to add the 'activity/JacobRunnable' into the queue, use the 'object(....)' to define a listener for that channel.
+In the INVOKE class, we've created a child activity that is called RECEIVE. Which puts RECEIVE class as part of INVOKE class. I know this is a bad example, it would be much better if I use a composite activity, like While or Sequence, but you know I am just being lazy. ;)</p>
+
+<p>At last, we will use following code to execute this example:</p>
+
+<div class="highlight"><pre><code class="java"><span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">main</span><span class="o">(</span><span class="n">String</span><span class="o">[]</span> <span class="n">args</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+<span class="n">ExecutionQueueImpl</span> <span class="n">soup</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ExecutionQueueImpl</span><span class="o">(</span><span class="kc">null</span><span class="o">);</span>
+<span class="n">JacobVPU</span> <span class="n">vpu</span> <span class="o">=</span> <span class="k">new</span> <span class="n">JacobVPU</span><span class="o">(</span><span class="n">soup</span><span class="o">,</span> <span class="k">new</span> <span class="n">Process</span><span class="o">());</span>
+
+<span class="k">while</span><span class="o">(</span><span class="n">vpu</span><span class="o">.</span><span class="na">execute</span><span class="o">())</span> <span class="o">{</span>
+<span class="o">}</span>
+
+<span class="o">}</span>
+</code></pre>
+</div>
+
+
+<p>Run this method, you would get following output.</p>
+
+<div class="highlight"><pre><code class="java"><span class="n">INVOKE</span> <span class="n">Activity</span>
+<span class="n">Receive</span> <span class="n">Activity</span>
+<span class="n">RECEIVE</span> <span class="n">success</span><span class="o">...</span>
+<span class="n">INVOKE</span> <span class="n">Done</span><span class="o">...</span>
+<span class="n">Process</span> <span class="n">Done</span>
+</code></pre>
+</div>
+
+
+<p>If you want to look at the code by yourself, it lies in the <a href="http://svn.apache.org/repos/asf/ode/trunk/jacob/">ode-jacob</a> module, it extends the <a href="http://svn.apache.org/repos/asf/ode/trunk/jacob-ap/">ode-jacob-ap</a> module. Below are some classes that you'd look into. <em>CommSend</em>, <em>CommRecv</em>. Jacob wraps the JacobRunnable as CommSend, wraps the ChannelListener as CommRecv. And then uses the <em>CommGroup</em> to do the match.<em>ExecutionQueueImpl</em> is the container for <em>Continuation</em>, <em>ExecutionObject</em>, <em>Channel</em> etc. In the ExecutionQueueImpl class, you would find couple static classes, like ChannelFrame, MessageFrame... these classes are mostly used for serialized and de-serialized the object.</p>
+
+					<div class="meta">
+						<ul class="list-tag list-linear">
+							<li class="list-head">tags: </li>
+							
+							
+
+
+  
+     
+    	<li><a href="/tags.html#BPEL-ref">BPEL <span>3</span></a></li>
+     
+    	<li><a href="/tags.html#BPM-ref">BPM <span>12</span></a></li>
+     
+    	<li><a href="/tags.html#Java-ref">Java <span>22</span></a></li>
+     
+    	<li><a href="/tags.html#ODE-ref">ODE <span>5</span></a></li>
+     
+    	<li><a href="/tags.html#RiftSaw-ref">RiftSaw <span>7</span></a></li>
+    
+  
+
+
+
+						</ul>
+					</div><!-- meta -->
+				</div><!-- entry-content -->
+				<div class="misc-content">
+					<div class="social">
+						<ul class="list-linear">
+							<li><div class="twitter-tweet"><a href="https://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="jeffyuchang" data-lang="en">Tweet</a></div></li>
+							<li><div class="twitter-follow"><a href="https://twitter.com/jeffyuchang" class="twitter-follow-button" data-show-count="false" data-lang="en"></a></div></li>
+						</ul>
+					</div>
+					
+					
+
+
+  <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_developer = 1;
+    var disqus_shortname = 'jeffyuchang'; // required: replace example with your forum shortname
+    
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+
+
+
+				</div><!-- misc-content -->
+				
+			</div><!-- bd -->
+			<footer class="unit-foot">
+				<div class="unit-inner unit-foot-inner">
+					<nav class="pagination">
+						<ul>
+							
+							<li class="prev"><a class="internal" rel="prev"  href="/2010/01/26/exploring-ode-part-i-bpel-compiler-and-its-internal-model" title="View Exploring ODE Part I: Bpel Compiler and its internal model.">&laquo; Exploring ODE Part I: Bpel Compiler and its internal model.</a></li>
+							
+							
+							<li class="pipe"> | </li>
+							
+							
+							<li class="next"><a class="internal" rel="next"  href="/2010/01/30/exploring-ode-part-iii-architecture-and-modules-introduction" title="View Exploring ODE Part III: architecture and modules introduction">Exploring ODE Part III: architecture and modules introduction &raquo;</a></li>
+							
+						</ul>
+					</nav>
+					<p class="gotop">
+						<a href="#page">Back to Top</a>
+					</p>
+				</div>
+			</footer>
+
+		</div><!-- content -->
+	</div><!-- unit-inner -->
+</article>
+
+
+				</div>
+			</div><!-- unit-inner -->
+		</div><!-- unit-body -->
+	</div><!-- body -->
+	<footer class="the-footer">
+		<div class="unit-foot">
+			<div class="unit-inner unit-foot-inner">
+			</div><!-- unit-foot-inner -->
+		</div><!-- unit-foot -->
+	</footer>
+</div><!-- page -->
+<script>
+	(function(d, s) {
+		var js, fjs = d.getElementsByTagName(s)[0], load = function(url, id) {
+		if (d.getElementById(id)) {return;}
+		js = d.createElement(s); js.src = url; js.id = id;
+		fjs.parentNode.insertBefore(js, fjs);
+		};
+	load('//platform.twitter.com/widgets.js', 'tweetjs');
+	// load('https://apis.google.com/js/plusone.js', 'gplus1js'); // Checkout http://j.mp/ApDgMr for usage html for this is <div class="g-plusone" data-size="medium"></div>
+	// load('//connect.facebook.net/en_US/all.js#xfbml=1', 'fbjssdk'); // Checkout http://j.mp/wZw2xR for using open graph protorol html for this is <div class="fb-like" data-href="/2010/01/27/exploring-ode-part-ii-jacob-framework" data-send="false" data-layout="button_count" data-width="450" data-show-faces="false" data-font="verdana"></div>
+	}(document, 'script'));
+</script>
+<script>
+/*! A fix for the iOS orientationchange zoom bug.Script by @scottjehl, rebound by @wilto. MIT License.*/
+(function(j){var i=j.document;if(!i.querySelectorAll){return}var l=i.querySelectorAll("meta[name=viewport]")[0],a=l&&l.getAttribute("content"),h=a+", maximum-scale=1.0",d=a+", maximum-scale=10.0",g=true,c=j.orientation,k=0;if(!l){return}function f(){l.setAttribute("content",d);g=true}function b(){l.setAttribute("content",h);g=false}function e(m){c=Math.abs(j.orientation);k=Math.abs(m.gamma);if(k>8&&c===0){if(g){b()}}else{if(!g){f()}}}j.addEventListener("orientationchange",f,false);j.addEventListener("deviceorientation",e,false)})(this);
+</script>
+
+  
+</body>
+</html>
+
