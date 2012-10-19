@@ -1,0 +1,332 @@
+
+<!DOCTYPE html>
+<!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7 ie" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="no-js lt-ie9 lt-ie8 ie" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="no-js lt-ie9 ie" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1">
+	<title>Back to Basics - review notes on Database System Implementation I</title>
+	<meta name="author" content="Jeff Yu">
+	<link href='/assets/themes/the-minimum/css/style.css' rel="stylesheet" media="all">
+	<link href="http://feeds.feedburner.com/" rel="alternate" title="Back to Basics - review notes on Database System Implementation I" type="application/atom+xml">
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/modernizr/2.0.6/modernizr.min.js"></script>
+</head>
+<body>
+
+<div id="page" class="hentry">
+	<header class="the-header">
+		<div class="unit-head">
+			<div class="unit-inner unit-head-inner">
+				<p class="logo"><a href="/">Jeff Yu @ IT</a>
+					</p>
+				<nav class="nav-global">
+					<ul>
+						<li class="index"><a href="/index.html">home</a></li>
+						<li class="archive"><a href="/archive.html">archive</a></li>
+						<li class="articles"><a href="/articles.html">articles</a></li>
+						<li class="tag"><a href="/tags.html">tags</a></li>
+                        <li class="about"><a href="/about.html">about</a></li>
+					</ul>
+				</nav>
+			</div><!-- unit-inner -->
+		</div><!-- unit-head -->
+	</header>
+	<div class="body" role="main">
+		<div class="unit-body">
+			<div class="unit-inner unit-body-inner">
+				<div class="entry-content">
+					
+<article class="unit-article layout-post">
+	<div class="unit-inner unit-article-inner">
+		<div class="content">
+			<header>
+				<div class="unit-head">
+					<div class="unit-inner unit-head-inner">
+						<h1 class="h3 entry-title">Back to Basics - review notes on Database System Implementation I</h1>
+						<div class="meta">
+							<p class="date-publish">
+								Date:
+								<date class="date-pub" title="2012-10-19T00:00:00+11:00" datetime="2012-10-19T00:00:00+11:00" pubdate>
+								<span class="day">19</span> -
+								<span class="month">10</span> -
+								<span class="year">2012</span>
+								</date>
+							</p>
+						</div>
+					</div><!-- unit-inner -->
+				</div><!-- unit-head -->
+			</header>
+
+			<div class="bd">
+				<div class="entry-content">				
+					<p>Database is essentially a specialised file system that is exclusively designed for easily storing and retrieving data, especially for the latter, quickly getting the correct data that users want is critial. And on top of that, it defines the SQL language (best example of the domain specific language) to easily manipulate the data.</p>
+
+<h4>Database Implementation Layers</h4>
+
+<p>It typically has a couple of layers for the database system implementation, as the following figure shows:</p>
+
+<p><img src="../../../../images/dbmsarch.png" alt="Database Implementation Layers" /></p>
+
+<p>Look it from the bottom up, I'll briefly talk about what each layer does.</p>
+
+<ul>
+<li><strong>Stored Data</strong>: This is the hardware that really keep the data, nothing exciting for us here.</li>
+<li><strong>Disk/File Management</strong>: This is usually done by the underlying Operating system's file system, in Postgres, it just directly uses the OS's readPage and writePage method when it needs to read/write data to the Disk. But some database vendor implements their own mechanism to the back-end directly, for example, Oracle has implemented one.</li>
+<li><strong>Buffer Management</strong>: This is the middleman of database manipulating the disk, basically the database reads/writes a Tuple(record) from the Disk/File via the BufferManager.</li>
+<li><strong>Access Method</strong>: This offers the methods like: get_tuple, next_tuple.</li>
+<li><strong>Relational Operator</strong>: It is the implementation of operations like: Selection, Projection, Join, Set, Scanning, Sorting, Gropuing, Aggreation etc.</li>
+<li><strong>Query Evaluation</strong>: It maps the SQL into its interal representation (Relational Algebra), and then rewritten the rules according to the Relational Algebra's law, pick up an optimised access method (e.g Plan) based on the Cost model, and then execute the plan.</li>
+</ul>
+
+
+<h4>overview</h4>
+
+<p>Before we go any further, we might need to introduce some terminologies that are used in the database field.</p>
+
+<p><em>DB</em>: database; <em>Rel</em>: Table; <em>Page</em>: content of disk block; <em>Tuple</em>: a record, or a row in the table.</p>
+
+<p>Once users issue an SQL, the database will return a tuple (or a set of tuples) that are satisfied the SQL to the client. Two imporant Ids in the database are: <em>PageId</em> and <em>TupleId</em></p>
+
+<h5>DBMS File Organisation</h5>
+
+<ul>
+<li>A single very large file containing all DB data (e.g. SQLite)</li>
+<li>Multiple-file Disk Manager for DB data. (most of DBs). If system uses one file per table, <em>PageId</em> contains relation identifier(which can be mapped to filename) + page number (to identify page within file)</li>
+</ul>
+
+
+<h5>Buffer Pool</h5>
+
+<p>The aim of DBMS buffer pool is to reduce the number of disk reads and disk writes by holding many pages in memory for reuse, it sits between the 'Acess Method' and 'Disk/File Management' layer.</p>
+
+<h5>Page/Tuple Management</h5>
+
+<p>Database applications view data as a collection of records(tuples), and records can be accessed via a <em>TupleId</em> (aka RecordId or RID).</p>
+
+<p>The Disk and buffer manager provides: 1) data is a sequence of fixed-size blocks(pages) 2) blocks can be (random) accessed via a <em>PageId</em>. 3) each block contains zero or more tuple values.</p>
+
+<h5>Relational Operations</h5>
+
+<p>Relational operations are the implmentations of selection, project, join, set operations and scanning, sorting, grouping, aggregation etc.</p>
+
+<p>There are two "dimension of variation" here, one is relational operation (e.g. Selection, Projection, Join, Sort etc) and the other one is file structures (e.g. heap, indexed, hashed etc). Each query method involves an operator and a file structure: like primary-key selection on hashed file or indexed file, sort-merge join on ordered heap files, and two-dimensional range query on R-tree indexed file.</p>
+
+<p>An important aspect of the Database is the analysis of cost of various query methods. <em>Cost</em> can be measured in terms following two:</p>
+
+<ul>
+<li><strong>Time Cost</strong>: total time taken to execute method</li>
+<li><strong>Page Cost</strong>: number of pages read and/or written</li>
+</ul>
+
+
+<p>Three simple example of file structures:</p>
+
+<ul>
+<li><strong>heap file</strong>: tuples added to any page which has space</li>
+<li><strong>sorted file</strong>: tuple arranged in file in key order</li>
+<li><strong>hash file</strong>: tuples placed in pages using hash function</li>
+</ul>
+
+
+<p>Gone through the following operations:</p>
+
+<ul>
+<li><strong>Scanning</strong>:</li>
+<li><strong>Sorting</strong>: 2 way Merge Sort, N-way Merge Sort.</li>
+<li><strong>Projection</strong>: Sort based Projection(needs only buffers, used by default), Hash based Projection(need buffers and good hash function), Index-only Projection (needs an appropriate index)</li>
+<li><strong>Selection</strong>:</li>
+<li><strong>Join</strong>:</li>
+</ul>
+
+
+<h5>Selection Relational Operation</h5>
+
+<ul>
+<li>one dimensional selection(condition uses only 1 attribute)</li>
+<li>multi-dimensional selection (condition uses > 1 attribute)</li>
+<li>similarity selection (approximate matching, with ranking)</li>
+</ul>
+
+
+<p>Two basic approaches for implementing the 'Select' efficiently:</p>
+
+<ul>
+<li>Physical arrangement of tuples. (sorting, hashing)
+There are Heap Files, Sorted Files and Hash Files. For hash files, we see both the simple Hash and <a href="http://en.wikipedia.org/wiki/Linear_hashing">Linear Hashing</a>.</li>
+<li>additional indexing information (index files, signatures - superimposed, disjoint)</li>
+</ul>
+
+
+<h5>Indexing</h5>
+
+<p>Indexing is a very important feature in Database, because it can improve the time cost of selection dramatically, esepcially for the big data in each row. Indexes are stored in separate files to data.</p>
+
+<p>A relation/file may have:
+- A index on single attribute. (useful for handling primary/secondary key queries e.g. one, range)
+- Separate indexes on many attributes. (useful for handling queries involving several fields)
+- A combined index incorporating many attributes. (multi-dimensional indexing for e.g. spatial, multimedia databases)</p>
+
+<p>Two types of index, one is <em>Dense</em>: one index entry per data tuple, the other one is <em>Sparse</em>: one index entry per data page (requires sorted data file).</p>
+
+<p>The Index data structure could be one of the following:</p>
+
+<ul>
+<li>B-Tree Indexes</li>
+<li>Bitmap Indexes</li>
+<li>Tree indexes (kd-Trees, Quad Trees, R-Tree) <em>Note:</em> PostgreSQL is using GiST implemented the R-Tree since version 8.2</li>
+<li>Indexing with Signatures.</li>
+</ul>
+
+
+<h5>Join Relational Operation</h5>
+
+<p>Join is important and potentially expensive operation, many methods have been developed for its implementation. Some implementations are:</p>
+
+<ul>
+<li>Nested Loop Join</li>
+<li>Block Nested Loop Join</li>
+<li>Sort Merge Join</li>
+<li>Hash Join. (variations: Simple Hash Join, Grace Hash Join, Hybrid Hash Join )</li>
+</ul>
+
+
+<p>No single join algorithm is superior in some overall sense. Which algorithm is best for a given query depends on:</p>
+
+<ul>
+<li>sizes of relations being joined, size of buffer pool</li>
+<li>any indexing on relations, whether relations are sorted</li>
+<li>which attributes and operations are used in the query</li>
+<li>number of tuples in S matching each tuple in R</li>
+<li>distribution of data values (uniform, skew ...)</li>
+</ul>
+
+
+<p>Choosing the "best" join algorithm is critical because the cost difference between best and worst case can be very large.</p>
+
+<h4>Query Processing/Evaluation</h4>
+
+<p>A query evaluator typically taking the declarative description of query (in SQL), determines plan for answering query and then executes method via DBMS engine to produce the result tuples. Following fingure is an internals of the query evaluation "black-box":</p>
+
+<p><img src="../../../../images/qproc0.png" alt="Database Query Evaluation" /></p>
+
+<p>It parses the SQL into <a href="http://en.wikipedia.org/wiki/Relational_algebra">Relational Algebra</a>, which is the internal representation, and then uses the algebraic laws on RA expression rewritten, use the cost based model to pick up a optimised plan as the access method, and then execute the plan and return the result tuples to the client.</p>
+
+<h4>Summary</h4>
+
+<p>From this course, I've mostly studied various data structures and algorithms to evalute the cost model of queries. As I said at the begining, the most important thing in database system is to keep the data in oder, while making the query as quick as possible. I didn't touch the transaction area in this one, and I'll write another dedicated entry for that topic.</p>
+
+<h4>Reference</h4>
+
+<ol>
+<li><a href="http://mahler.cse.unsw.edu.au/webcms2/course/index.php?cid=2249">UNSW Database Implementation Course</a></li>
+</ol>
+
+
+					<div class="meta">
+						<ul class="list-tag list-linear">
+							<li class="list-head">tags: </li>
+							
+							
+
+
+  
+     
+    	<li><a href="/tags.html#Database-ref">Database <span>5</span></a></li>
+     
+    	<li><a href="/tags.html#Back to Basics-ref">Back to Basics <span>1</span></a></li>
+    
+  
+
+
+
+						</ul>
+					</div><!-- meta -->
+				</div><!-- entry-content -->
+				<div class="misc-content">
+					<div class="social">
+						<ul class="list-linear">
+							<li><div class="twitter-tweet"><a href="https://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="jeffyuchang" data-lang="en">Tweet</a></div></li>
+							<li><div class="twitter-follow"><a href="https://twitter.com/jeffyuchang" class="twitter-follow-button" data-show-count="false" data-lang="en"></a></div></li>
+						</ul>
+					</div>
+					
+					
+
+
+  <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_developer = 1;
+    var disqus_shortname = 'jeffyuchang'; // required: replace example with your forum shortname
+    
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+
+
+
+				</div><!-- misc-content -->
+				
+			</div><!-- bd -->
+			<footer class="unit-foot">
+				<div class="unit-inner unit-foot-inner">
+					<nav class="pagination">
+						<ul>
+							
+							<li class="prev"><a class="internal" rel="prev"  href="/2012/07/06/functional-javascript" title="View JavaScript中的函数对象">&laquo; JavaScript中的函数对象</a></li>
+							
+							
+							
+						</ul>
+					</nav>
+					<p class="gotop">
+						<a href="#page">Back to Top</a>
+					</p>
+				</div>
+			</footer>
+
+		</div><!-- content -->
+	</div><!-- unit-inner -->
+</article>
+
+
+				</div>
+			</div><!-- unit-inner -->
+		</div><!-- unit-body -->
+	</div><!-- body -->
+	<footer class="the-footer">
+		<div class="unit-foot">
+			<div class="unit-inner unit-foot-inner">
+			</div><!-- unit-foot-inner -->
+		</div><!-- unit-foot -->
+	</footer>
+</div><!-- page -->
+<script>
+	(function(d, s) {
+		var js, fjs = d.getElementsByTagName(s)[0], load = function(url, id) {
+		if (d.getElementById(id)) {return;}
+		js = d.createElement(s); js.src = url; js.id = id;
+		fjs.parentNode.insertBefore(js, fjs);
+		};
+	load('//platform.twitter.com/widgets.js', 'tweetjs');
+	// load('https://apis.google.com/js/plusone.js', 'gplus1js'); // Checkout http://j.mp/ApDgMr for usage html for this is <div class="g-plusone" data-size="medium"></div>
+	// load('//connect.facebook.net/en_US/all.js#xfbml=1', 'fbjssdk'); // Checkout http://j.mp/wZw2xR for using open graph protorol html for this is <div class="fb-like" data-href="/2012/10/19/back-to-basics-dbms-1" data-send="false" data-layout="button_count" data-width="450" data-show-faces="false" data-font="verdana"></div>
+	}(document, 'script'));
+</script>
+<script>
+/*! A fix for the iOS orientationchange zoom bug.Script by @scottjehl, rebound by @wilto. MIT License.*/
+(function(j){var i=j.document;if(!i.querySelectorAll){return}var l=i.querySelectorAll("meta[name=viewport]")[0],a=l&&l.getAttribute("content"),h=a+", maximum-scale=1.0",d=a+", maximum-scale=10.0",g=true,c=j.orientation,k=0;if(!l){return}function f(){l.setAttribute("content",d);g=true}function b(){l.setAttribute("content",h);g=false}function e(m){c=Math.abs(j.orientation);k=Math.abs(m.gamma);if(k>8&&c===0){if(g){b()}}else{if(!g){f()}}}j.addEventListener("orientationchange",f,false);j.addEventListener("deviceorientation",e,false)})(this);
+</script>
+
+  
+</body>
+</html>
+

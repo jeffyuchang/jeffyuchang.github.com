@@ -4,13 +4,183 @@
  <title>Jeff Yu @ IT</title>
  <link href="http://jeffyuchang.github.com/atom.xml" rel="self"/>
  <link href="http://jeffyuchang.github.com"/>
- <updated>2012-10-15T17:47:44+11:00</updated>
+ <updated>2012-10-19T15:54:33+11:00</updated>
  <id>http://jeffyuchang.github.com</id>
  <author>
    <name>Jeff Yu</name>
    <email>blah@email.test</email>
  </author>
 
+ 
+ <entry>
+   <title>Back to Basics - review notes on Database System Implementation I</title>
+   <link href="http://jeffyuchang.github.com/2012/10/19/back-to-basics-dbms-1"/>
+   <updated>2012-10-19T00:00:00+11:00</updated>
+   <id>hhttp://jeffyuchang.github.com/2012/10/19/back-to-basics-dbms-1</id>
+   <content type="html">&lt;p&gt;Database is essentially a specialised file system that is exclusively designed for easily storing and retrieving data, especially for the latter, quickly getting the correct data that users want is critial. And on top of that, it defines the SQL language (best example of the domain specific language) to easily manipulate the data.&lt;/p&gt;
+
+&lt;h4&gt;Database Implementation Layers&lt;/h4&gt;
+
+&lt;p&gt;It typically has a couple of layers for the database system implementation, as the following figure shows:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;../../../../images/dbmsarch.png&quot; alt=&quot;Database Implementation Layers&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Look it from the bottom up, I'll briefly talk about what each layer does.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Stored Data&lt;/strong&gt;: This is the hardware that really keep the data, nothing exciting for us here.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Disk/File Management&lt;/strong&gt;: This is usually done by the underlying Operating system's file system, in Postgres, it just directly uses the OS's readPage and writePage method when it needs to read/write data to the Disk. But some database vendor implements their own mechanism to the back-end directly, for example, Oracle has implemented one.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Buffer Management&lt;/strong&gt;: This is the middleman of database manipulating the disk, basically the database reads/writes a Tuple(record) from the Disk/File via the BufferManager.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Access Method&lt;/strong&gt;: This offers the methods like: get_tuple, next_tuple.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Relational Operator&lt;/strong&gt;: It is the implementation of operations like: Selection, Projection, Join, Set, Scanning, Sorting, Gropuing, Aggreation etc.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Query Evaluation&lt;/strong&gt;: It maps the SQL into its interal representation (Relational Algebra), and then rewritten the rules according to the Relational Algebra's law, pick up an optimised access method (e.g Plan) based on the Cost model, and then execute the plan.&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;h4&gt;overview&lt;/h4&gt;
+
+&lt;p&gt;Before we go any further, we might need to introduce some terminologies that are used in the database field.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;DB&lt;/em&gt;: database; &lt;em&gt;Rel&lt;/em&gt;: Table; &lt;em&gt;Page&lt;/em&gt;: content of disk block; &lt;em&gt;Tuple&lt;/em&gt;: a record, or a row in the table.&lt;/p&gt;
+
+&lt;p&gt;Once users issue an SQL, the database will return a tuple (or a set of tuples) that are satisfied the SQL to the client. Two imporant Ids in the database are: &lt;em&gt;PageId&lt;/em&gt; and &lt;em&gt;TupleId&lt;/em&gt;&lt;/p&gt;
+
+&lt;h5&gt;DBMS File Organisation&lt;/h5&gt;
+
+&lt;ul&gt;
+&lt;li&gt;A single very large file containing all DB data (e.g. SQLite)&lt;/li&gt;
+&lt;li&gt;Multiple-file Disk Manager for DB data. (most of DBs). If system uses one file per table, &lt;em&gt;PageId&lt;/em&gt; contains relation identifier(which can be mapped to filename) + page number (to identify page within file)&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;h5&gt;Buffer Pool&lt;/h5&gt;
+
+&lt;p&gt;The aim of DBMS buffer pool is to reduce the number of disk reads and disk writes by holding many pages in memory for reuse, it sits between the 'Acess Method' and 'Disk/File Management' layer.&lt;/p&gt;
+
+&lt;h5&gt;Page/Tuple Management&lt;/h5&gt;
+
+&lt;p&gt;Database applications view data as a collection of records(tuples), and records can be accessed via a &lt;em&gt;TupleId&lt;/em&gt; (aka RecordId or RID).&lt;/p&gt;
+
+&lt;p&gt;The Disk and buffer manager provides: 1) data is a sequence of fixed-size blocks(pages) 2) blocks can be (random) accessed via a &lt;em&gt;PageId&lt;/em&gt;. 3) each block contains zero or more tuple values.&lt;/p&gt;
+
+&lt;h5&gt;Relational Operations&lt;/h5&gt;
+
+&lt;p&gt;Relational operations are the implmentations of selection, project, join, set operations and scanning, sorting, grouping, aggregation etc.&lt;/p&gt;
+
+&lt;p&gt;There are two &quot;dimension of variation&quot; here, one is relational operation (e.g. Selection, Projection, Join, Sort etc) and the other one is file structures (e.g. heap, indexed, hashed etc). Each query method involves an operator and a file structure: like primary-key selection on hashed file or indexed file, sort-merge join on ordered heap files, and two-dimensional range query on R-tree indexed file.&lt;/p&gt;
+
+&lt;p&gt;An important aspect of the Database is the analysis of cost of various query methods. &lt;em&gt;Cost&lt;/em&gt; can be measured in terms following two:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Time Cost&lt;/strong&gt;: total time taken to execute method&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Page Cost&lt;/strong&gt;: number of pages read and/or written&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;p&gt;Three simple example of file structures:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;heap file&lt;/strong&gt;: tuples added to any page which has space&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;sorted file&lt;/strong&gt;: tuple arranged in file in key order&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;hash file&lt;/strong&gt;: tuples placed in pages using hash function&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;p&gt;Gone through the following operations:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Scanning&lt;/strong&gt;:&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Sorting&lt;/strong&gt;: 2 way Merge Sort, N-way Merge Sort.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Projection&lt;/strong&gt;: Sort based Projection(needs only buffers, used by default), Hash based Projection(need buffers and good hash function), Index-only Projection (needs an appropriate index)&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Selection&lt;/strong&gt;:&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Join&lt;/strong&gt;:&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;h5&gt;Selection Relational Operation&lt;/h5&gt;
+
+&lt;ul&gt;
+&lt;li&gt;one dimensional selection(condition uses only 1 attribute)&lt;/li&gt;
+&lt;li&gt;multi-dimensional selection (condition uses &gt; 1 attribute)&lt;/li&gt;
+&lt;li&gt;similarity selection (approximate matching, with ranking)&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;p&gt;Two basic approaches for implementing the 'Select' efficiently:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Physical arrangement of tuples. (sorting, hashing)
+There are Heap Files, Sorted Files and Hash Files. For hash files, we see both the simple Hash and &lt;a href=&quot;http://en.wikipedia.org/wiki/Linear_hashing&quot;&gt;Linear Hashing&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;additional indexing information (index files, signatures - superimposed, disjoint)&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;h5&gt;Indexing&lt;/h5&gt;
+
+&lt;p&gt;Indexing is a very important feature in Database, because it can improve the time cost of selection dramatically, esepcially for the big data in each row. Indexes are stored in separate files to data.&lt;/p&gt;
+
+&lt;p&gt;A relation/file may have:
+- A index on single attribute. (useful for handling primary/secondary key queries e.g. one, range)
+- Separate indexes on many attributes. (useful for handling queries involving several fields)
+- A combined index incorporating many attributes. (multi-dimensional indexing for e.g. spatial, multimedia databases)&lt;/p&gt;
+
+&lt;p&gt;Two types of index, one is &lt;em&gt;Dense&lt;/em&gt;: one index entry per data tuple, the other one is &lt;em&gt;Sparse&lt;/em&gt;: one index entry per data page (requires sorted data file).&lt;/p&gt;
+
+&lt;p&gt;The Index data structure could be one of the following:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;B-Tree Indexes&lt;/li&gt;
+&lt;li&gt;Bitmap Indexes&lt;/li&gt;
+&lt;li&gt;Tree indexes (kd-Trees, Quad Trees, R-Tree) &lt;em&gt;Note:&lt;/em&gt; PostgreSQL is using GiST implemented the R-Tree since version 8.2&lt;/li&gt;
+&lt;li&gt;Indexing with Signatures.&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;h5&gt;Join Relational Operation&lt;/h5&gt;
+
+&lt;p&gt;Join is important and potentially expensive operation, many methods have been developed for its implementation. Some implementations are:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Nested Loop Join&lt;/li&gt;
+&lt;li&gt;Block Nested Loop Join&lt;/li&gt;
+&lt;li&gt;Sort Merge Join&lt;/li&gt;
+&lt;li&gt;Hash Join. (variations: Simple Hash Join, Grace Hash Join, Hybrid Hash Join )&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;p&gt;No single join algorithm is superior in some overall sense. Which algorithm is best for a given query depends on:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;sizes of relations being joined, size of buffer pool&lt;/li&gt;
+&lt;li&gt;any indexing on relations, whether relations are sorted&lt;/li&gt;
+&lt;li&gt;which attributes and operations are used in the query&lt;/li&gt;
+&lt;li&gt;number of tuples in S matching each tuple in R&lt;/li&gt;
+&lt;li&gt;distribution of data values (uniform, skew ...)&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;p&gt;Choosing the &quot;best&quot; join algorithm is critical because the cost difference between best and worst case can be very large.&lt;/p&gt;
+
+&lt;h4&gt;Query Processing/Evaluation&lt;/h4&gt;
+
+&lt;p&gt;A query evaluator typically taking the declarative description of query (in SQL), determines plan for answering query and then executes method via DBMS engine to produce the result tuples. Following fingure is an internals of the query evaluation &quot;black-box&quot;:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;../../../../images/qproc0.png&quot; alt=&quot;Database Query Evaluation&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;It parses the SQL into &lt;a href=&quot;http://en.wikipedia.org/wiki/Relational_algebra&quot;&gt;Relational Algebra&lt;/a&gt;, which is the internal representation, and then uses the algebraic laws on RA expression rewritten, use the cost based model to pick up a optimised plan as the access method, and then execute the plan and return the result tuples to the client.&lt;/p&gt;
+
+&lt;h4&gt;Summary&lt;/h4&gt;
+
+&lt;p&gt;From this course, I've mostly studied various data structures and algorithms to evalute the cost model of queries. As I said at the begining, the most important thing in database system is to keep the data in oder, while making the query as quick as possible. I didn't touch the transaction area in this one, and I'll write another dedicated entry for that topic.&lt;/p&gt;
+
+&lt;h4&gt;Reference&lt;/h4&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;http://mahler.cse.unsw.edu.au/webcms2/course/index.php?cid=2249&quot;&gt;UNSW Database Implementation Course&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+</content>
+ </entry>
  
  <entry>
    <title>JavaScript中的函数对象</title>
