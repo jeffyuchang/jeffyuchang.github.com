@@ -173,9 +173,10 @@ There are Heap Files, Sorted Files and Hash Files. For hash files, we see both t
 <p>The Index data structure could be one of the following:</p>
 
 <ul>
-<li>B-Tree Indexes</li>
-<li>Bitmap Indexes</li>
-<li>Tree indexes (kd-Trees, Quad Trees, R-Tree) <em>Note:</em> PostgreSQL is using GiST implemented the R-Tree since version 8.2</li>
+<li><a href="http://en.wikipedia.org/wiki/B-tree">B-Tree Indexes</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Bitmap_index">Bitmap Indexes</a></li>
+<li>Tree indexes (<a href="http://en.wikipedia.org/wiki/K-d_tree">kd-Trees</a>, <a href="http://en.wikipedia.org/wiki/Quadtree">Quad Trees</a>, <a href="http://en.wikipedia.org/wiki/R-tree">R-Tree</a>)
+<em>Note:</em> PostgreSQL is using GiST implemented the R-Tree since version 8.2</li>
 <li>Indexing with Signatures.</li>
 </ul>
 
@@ -185,10 +186,10 @@ There are Heap Files, Sorted Files and Hash Files. For hash files, we see both t
 <p>Join is important and potentially expensive operation, many methods have been developed for its implementation. Some implementations are:</p>
 
 <ul>
-<li>Nested Loop Join</li>
-<li>Block Nested Loop Join</li>
-<li>Sort Merge Join</li>
-<li>Hash Join. (variations: Simple Hash Join, Grace Hash Join, Hybrid Hash Join )</li>
+<li><a href="http://en.wikipedia.org/wiki/Nested_loop_join">Nested Loop Join</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Block_nested_loop">Block Nested Loop Join</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Sort-merge_join">Sort Merge Join</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Hash_join">Hash Join</a> (variations: Simple Hash Join, Grace Hash Join, Hybrid Hash Join )</li>
 </ul>
 
 

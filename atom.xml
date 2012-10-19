@@ -4,7 +4,7 @@
  <title>Jeff Yu @ IT</title>
  <link href="http://jeffyuchang.github.com/atom.xml" rel="self"/>
  <link href="http://jeffyuchang.github.com"/>
- <updated>2012-10-19T15:54:33+11:00</updated>
+ <updated>2012-10-19T17:46:01+11:00</updated>
  <id>http://jeffyuchang.github.com</id>
  <author>
    <name>Jeff Yu</name>
@@ -129,9 +129,10 @@ There are Heap Files, Sorted Files and Hash Files. For hash files, we see both t
 &lt;p&gt;The Index data structure could be one of the following:&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;B-Tree Indexes&lt;/li&gt;
-&lt;li&gt;Bitmap Indexes&lt;/li&gt;
-&lt;li&gt;Tree indexes (kd-Trees, Quad Trees, R-Tree) &lt;em&gt;Note:&lt;/em&gt; PostgreSQL is using GiST implemented the R-Tree since version 8.2&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://en.wikipedia.org/wiki/B-tree&quot;&gt;B-Tree Indexes&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://en.wikipedia.org/wiki/Bitmap_index&quot;&gt;Bitmap Indexes&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Tree indexes (&lt;a href=&quot;http://en.wikipedia.org/wiki/K-d_tree&quot;&gt;kd-Trees&lt;/a&gt;, &lt;a href=&quot;http://en.wikipedia.org/wiki/Quadtree&quot;&gt;Quad Trees&lt;/a&gt;, &lt;a href=&quot;http://en.wikipedia.org/wiki/R-tree&quot;&gt;R-Tree&lt;/a&gt;)
+&lt;em&gt;Note:&lt;/em&gt; PostgreSQL is using GiST implemented the R-Tree since version 8.2&lt;/li&gt;
 &lt;li&gt;Indexing with Signatures.&lt;/li&gt;
 &lt;/ul&gt;
 
@@ -141,10 +142,10 @@ There are Heap Files, Sorted Files and Hash Files. For hash files, we see both t
 &lt;p&gt;Join is important and potentially expensive operation, many methods have been developed for its implementation. Some implementations are:&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;Nested Loop Join&lt;/li&gt;
-&lt;li&gt;Block Nested Loop Join&lt;/li&gt;
-&lt;li&gt;Sort Merge Join&lt;/li&gt;
-&lt;li&gt;Hash Join. (variations: Simple Hash Join, Grace Hash Join, Hybrid Hash Join )&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://en.wikipedia.org/wiki/Nested_loop_join&quot;&gt;Nested Loop Join&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://en.wikipedia.org/wiki/Block_nested_loop&quot;&gt;Block Nested Loop Join&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://en.wikipedia.org/wiki/Sort-merge_join&quot;&gt;Sort Merge Join&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://en.wikipedia.org/wiki/Hash_join&quot;&gt;Hash Join&lt;/a&gt; (variations: Simple Hash Join, Grace Hash Join, Hybrid Hash Join )&lt;/li&gt;
 &lt;/ul&gt;
 
 
