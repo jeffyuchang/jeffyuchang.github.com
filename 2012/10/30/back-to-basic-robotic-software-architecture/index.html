@@ -1,0 +1,294 @@
+
+<!DOCTYPE html>
+<!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7 ie" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="no-js lt-ie9 lt-ie8 ie" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="no-js lt-ie9 ie" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1">
+	<title>Back To Basics -  Review notes on Robotic Software Architecture Course</title>
+	<meta name="author" content="Jeff Yu">
+	<link href='/assets/themes/the-minimum/css/style.css' rel="stylesheet" media="all">
+	<link href="http://feeds.feedburner.com/" rel="alternate" title="Back To Basics -  Review notes on Robotic Software Architecture Course" type="application/atom+xml">
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/modernizr/2.0.6/modernizr.min.js"></script>
+</head>
+<body>
+
+<div id="page" class="hentry">
+	<header class="the-header">
+		<div class="unit-head">
+			<div class="unit-inner unit-head-inner">
+				<p class="logo"><a href="/">Jeff Yu @ IT</a>
+					</p>
+				<nav class="nav-global">
+					<ul>
+						<li class="index"><a href="/index.html">home</a></li>
+						<li class="archive"><a href="/archive.html">archive</a></li>
+						<li class="articles"><a href="/articles.html">articles</a></li>
+						<li class="tag"><a href="/tags.html">tags</a></li>
+                        <li class="about"><a href="/about.html">about</a></li>
+					</ul>
+				</nav>
+			</div><!-- unit-inner -->
+		</div><!-- unit-head -->
+	</header>
+	<div class="body" role="main">
+		<div class="unit-body">
+			<div class="unit-inner unit-body-inner">
+				<div class="entry-content">
+					
+<article class="unit-article layout-post">
+	<div class="unit-inner unit-article-inner">
+		<div class="content">
+			<header>
+				<div class="unit-head">
+					<div class="unit-inner unit-head-inner">
+						<h1 class="h3 entry-title">Back To Basics -  Review notes on Robotic Software Architecture Course</h1>
+						<div class="meta">
+							<p class="date-publish">
+								Date:
+								<date class="date-pub" title="2012-10-30T00:00:00+11:00" datetime="2012-10-30T00:00:00+11:00" pubdate>
+								<span class="day">30</span> -
+								<span class="month">10</span> -
+								<span class="year">2012</span>
+								</date>
+							</p>
+						</div>
+					</div><!-- unit-inner -->
+				</div><!-- unit-head -->
+			</header>
+
+			<div class="bd">
+				<div class="entry-content">				
+					<p><img src="../../../../images/robotic-world.png" alt="Robotic and World" /></p>
+
+<p>As the above picture shows, the robot senses the world from its sensor, and then do some actions to the world. We can typically think of the world as a Map too make it not too abstract.</p>
+
+<p>When dealing with robotics, we need to deal with uncerntainty and nosiy, for example, when you asked robot to turn left 90 degree, it could just turn about 85 degree, we called it having noisy, or maybe robot didn't move at all due to mechanic problems and the sensor is not perfect either, so we need to add the noisy to that too. Therefore, we need to take the nosiy into account when we are creating the model for it.</p>
+
+<h5>Bayesian Localisation</h5>
+
+<p>Assume the robot doesn't know its location, and then wants to localise himself in the world(e.g map), here we have some landmarks in the map that robot can sense via its sensor. It has two updates: <em>Motion Update</em> and <em>Observation Update</em>.</p>
+
+<ul>
+<li><a href="http://en.wikipedia.org/wiki/Bayes'_theorem">Bayes Rule</a>:
+ P(S|O) = P(O|S) * P(S) / P(O) == likelihood * prior / evidence. Here S means state, O means observation.</li>
+<li><a href="http://en.wikipedia.org/wiki/Kalman_filter">Kalman Filter</a>:
+ It is a special case of a Bayes’ filter with dynamics model and sensory model being linear <a href="http://en.wikipedia.org/wiki/Normal_distribution">Gaussian</a>.</li>
+<li><a href="http://en.wikipedia.org/wiki/Extended_Kalman_filter">Extended Kalman Filter</a>:
+  When the sensory model is nonlinear, then we may use this filter to make it like linear.</li>
+<li><a href="http://en.wikipedia.org/wiki/Particle_filter">Particle Filter</a>:</li>
+</ul>
+
+
+<p><em>Note</em>:<a href="http://swarmlab.unimaas.nl/wp-content/uploads/2012/07/fox2003bayesian.pdf">Here is a nice rundown article</a> with regard to these filters, and here are three series on understanding the Extended Kalman Filter (EKF.): <a href="http://services.eng.uts.edu.au/~sdhuang/1D%20Kalman%20Filter_Shoudong.pdf">PartI</a>, <a href="http://services.eng.uts.edu.au/~sdhuang/Kalman%20Filter_Shoudong.pdf">PartII</a> and <a href="http://services.eng.uts.edu.au/~sdhuang/Extended%20Kalman%20Filter_Shoudong.pdf">PartIII</a>.</p>
+
+<h5>Search</h5>
+
+<p>Search Problem is just model. Firstly, we map the problem to Search problem into following properties: <strong>States, Actions, Successor Function and Goal test</strong>. Below are some Search Algorithms(b denotes the branching factor, m denotes the tree's depth for the time complexity and space complexity):</p>
+
+<ul>
+<li><a href="http://en.wikipedia.org/wiki/Depth-first_search">Depth-First Search</a>:  Takes time O(b<sup>m</sup> ), Spaces that fringe take O(bm)</li>
+<li><a href="http://en.wikipedia.org/wiki/Breadth-first_search">Breath-First Search</a>: Takes time O(b<sup>m</sup> ), Spaces that fringe take O(b<sup>m</sup> )</li>
+<li><a href="http://en.wikipedia.org/wiki/Uniform-cost_search">Uniform Cost Search</a>: This one is typically used in the weighted tree. Strategy: expand a cheapest node first. Fringe is a priority queue(priority: cumulative cost)</li>
+<li><a href="http://en.wikipedia.org/wiki/A*_search_algorithm">A<sup>*</sup> Search</a>: The priority queue is ordered by f(n) = g(n) + h(n). Here the g(n) denotes the cost that already took, the h(n) means the hurestic cost to the goal. This algorithm is a cornerstone of search, and has been used in a lot of fields.</li>
+</ul>
+
+
+<h5>Graph Search</h5>
+
+<p>Idea: never expand a state twice</p>
+
+<p>Implementation:</p>
+
+<ul>
+<li>Tree search + a set of expanded states ("closed set")</li>
+<li>Expand the search tree node-by-node, but...</li>
+<li>Before expanding a node, check to make sure its state is new</li>
+<li>if not new, skip it</li>
+</ul>
+
+
+<p>In above algorithms, we are always dealing with deterministic situation, for cases involved non-determinisc (stochastic), we will use the <strong>Markov Decision Process(aka MDP)</strong>.</p>
+
+<h5>Markov Decision Processes</h5>
+
+<p><a href="http://en.wikipedia.org/wiki/Markov_decision_process">MDP</a> is used to find a optimal way in the non-deterministic(stochastic) search area. It uses the <a href="http://en.wikipedia.org/wiki/Bellman_equation#Example">Bellman Equation</a> to do the calculation.</p>
+
+<p><img src="../../../../images/mdp_bellman_equation.png" alt="Bellman Equation" /></p>
+
+<p>Here is the denotation that we used in the formula:
+ <strong>S</strong> -> state, <strong>R</strong> -> Reward, <strong>A</strong> -> Action, <strong>O</strong> -> Obersavation, <strong>T</strong> -> Transition Function.</p>
+
+<ul>
+<li>Value Iteration:
+  The formulation is as following:
+  <img src="../../../../images/mdp_vi.png" alt="Value Iteration Bellman Equation" /></li>
+<li>Policy Iteration:
+  The formulation is as following:
+  <img src="../../../../images/mdp_pi.png" alt="Policy Iteration Bellman Equation" /></li>
+<li>Prioritized-Sweeping:
+
+<blockquote><p>Use a Priority Queue to update nodes in a smart order, on each update, track |ΔV|, and add it to the priority of all upstream states. Reset priority to 0 when a node is pulled from the queue and updated.</p></blockquote></li>
+</ul>
+
+
+<p>MDP applies to the fully observable, <a href="http://en.wikipedia.org/wiki/Partially_observable_Markov_decision_process">POMDP</a> technique applies to the Partical Observal case. In both MDP and POMDP we assume that we know the <strong>Transition function (T)</strong> and <strong>Reward Function (R)</strong>, in the cases that we don't know them, it will lead to the next section, Reinforcement Learning.</p>
+
+<h5>Reinforcement Learning</h5>
+
+<p>Because we don't have the T and R function, we can use the following techniques:</p>
+
+<ul>
+<li><p><a href="http://en.wikipedia.org/wiki/Temporal_difference_learning">Temporal Difference Learning</a></p>
+
+<p> <img src="../../../../images/rl_td_algorithm.png" alt="TD" /></p></li>
+<li><p><a href="http://en.wikipedia.org/wiki/Q-learning">Q-Learning</a> (aka. Model free technique)</p>
+
+<p> <img src="../../../../images/rl_q_learning.png" alt="Q learning" /></p></li>
+</ul>
+
+
+<h5>Optimisation</h5>
+
+<ul>
+<li><a href="http://en.wikipedia.org/wiki/Gradient_descent">Gradient Descent</a></li>
+<li><a href="http://en.wikipedia.org/wiki/Function_approximation">Function Approximation</a></li>
+<li><a href="http://optlab-server.sce.carleton.ca/POAnimations2007/NonLinear7.html">Downhill Simplex Algorithm</a></li>
+<li><a href="https://wiki.ece.cmu.edu/ddl/index.php/Powell's_method">Powell's Method (Conjugate Gradient)</a></li>
+</ul>
+
+
+<h5>Planning</h5>
+
+<ul>
+<li><a href="http://en.wikipedia.org/wiki/State_space_planning">State space planning</a></li>
+<li>Plan space planning</li>
+</ul>
+
+
+<h5>Summary</h5>
+
+<p>Above is a list of bulletins that were taught in this course, guess it is a bit hard for others to follow due to its simplicity, most likely it is for myself use. :)</p>
+
+<h4>Reference</h4>
+
+<ul>
+<li><a href="http://www.cse.unsw.edu.au/~cs3431/wiki/">UNSW CS3431 Robotic Software Architecture Course</a></li>
+<li><a href="https://www.ai-class.com">Introdcution to Artificial Intelligence</a></li>
+<li><a href="http://www.udacity.com/overview/Course/cs373/CourseRev/apr2012">CS373 Programming A Robotic Car</a></li>
+<li><a href="https://www.edx.org/courses/BerkeleyX/CS188.1x/2012_Fall/about">CS188.1x: Artificial Intelligence</a></li>
+<li><a href="http://artint.info/index.html">Artificial Intelligence, foundations of computational agents</a></li>
+<li><a href="http://comp3431.wikidot.com">CS3431 Study Note</a></li>
+</ul>
+
+
+					<div class="meta">
+						<ul class="list-tag list-linear">
+							<li class="list-head">tags: </li>
+							
+							
+
+
+  
+     
+    	<li><a href="/tags.html#Back to Basics-ref">Back to Basics <span>2</span></a></li>
+     
+    	<li><a href="/tags.html#Artificial Intelligence-ref">Artificial Intelligence <span>1</span></a></li>
+     
+    	<li><a href="/tags.html#Robotics-ref">Robotics <span>1</span></a></li>
+    
+  
+
+
+
+						</ul>
+					</div><!-- meta -->
+				</div><!-- entry-content -->
+				<div class="misc-content">
+					<div class="social">
+						<ul class="list-linear">
+							<li><div class="twitter-tweet"><a href="https://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="jeffyuchang" data-lang="en">Tweet</a></div></li>
+							<li><div class="twitter-follow"><a href="https://twitter.com/jeffyuchang" class="twitter-follow-button" data-show-count="false" data-lang="en"></a></div></li>
+						</ul>
+					</div>
+					
+					
+
+
+  <div id="disqus_thread"></div>
+<script type="text/javascript">
+    var disqus_developer = 1;
+    var disqus_shortname = 'jeffyuchang'; // required: replace example with your forum shortname
+    
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = 'http://' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="http://disqus.com" class="dsq-brlink">blog comments powered by <span class="logo-disqus">Disqus</span></a>
+
+
+
+
+				</div><!-- misc-content -->
+				
+			</div><!-- bd -->
+			<footer class="unit-foot">
+				<div class="unit-inner unit-foot-inner">
+					<nav class="pagination">
+						<ul>
+							
+							<li class="prev"><a class="internal" rel="prev"  href="/2012/10/19/back-to-basics-dbms-1" title="View Back To Basics - Review notes on Database System Implementation I">&laquo; Back To Basics - Review notes on Database System Implementation I</a></li>
+							
+							
+							
+						</ul>
+					</nav>
+					<p class="gotop">
+						<a href="#page">Back to Top</a>
+					</p>
+				</div>
+			</footer>
+
+		</div><!-- content -->
+	</div><!-- unit-inner -->
+</article>
+
+
+				</div>
+			</div><!-- unit-inner -->
+		</div><!-- unit-body -->
+	</div><!-- body -->
+	<footer class="the-footer">
+		<div class="unit-foot">
+			<div class="unit-inner unit-foot-inner">
+			</div><!-- unit-foot-inner -->
+		</div><!-- unit-foot -->
+	</footer>
+</div><!-- page -->
+<script>
+	(function(d, s) {
+		var js, fjs = d.getElementsByTagName(s)[0], load = function(url, id) {
+		if (d.getElementById(id)) {return;}
+		js = d.createElement(s); js.src = url; js.id = id;
+		fjs.parentNode.insertBefore(js, fjs);
+		};
+	load('//platform.twitter.com/widgets.js', 'tweetjs');
+	// load('https://apis.google.com/js/plusone.js', 'gplus1js'); // Checkout http://j.mp/ApDgMr for usage html for this is <div class="g-plusone" data-size="medium"></div>
+	// load('//connect.facebook.net/en_US/all.js#xfbml=1', 'fbjssdk'); // Checkout http://j.mp/wZw2xR for using open graph protorol html for this is <div class="fb-like" data-href="/2012/10/30/back-to-basic-robotic-software-architecture" data-send="false" data-layout="button_count" data-width="450" data-show-faces="false" data-font="verdana"></div>
+	}(document, 'script'));
+</script>
+<script>
+/*! A fix for the iOS orientationchange zoom bug.Script by @scottjehl, rebound by @wilto. MIT License.*/
+(function(j){var i=j.document;if(!i.querySelectorAll){return}var l=i.querySelectorAll("meta[name=viewport]")[0],a=l&&l.getAttribute("content"),h=a+", maximum-scale=1.0",d=a+", maximum-scale=10.0",g=true,c=j.orientation,k=0;if(!l){return}function f(){l.setAttribute("content",d);g=true}function b(){l.setAttribute("content",h);g=false}function e(m){c=Math.abs(j.orientation);k=Math.abs(m.gamma);if(k>8&&c===0){if(g){b()}}else{if(!g){f()}}}j.addEventListener("orientationchange",f,false);j.addEventListener("deviceorientation",e,false)})(this);
+</script>
+
+  
+</body>
+</html>
+

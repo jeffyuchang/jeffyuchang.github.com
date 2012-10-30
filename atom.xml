@@ -4,7 +4,7 @@
  <title>Jeff Yu @ IT</title>
  <link href="http://jeffyuchang.github.com/atom.xml" rel="self"/>
  <link href="http://jeffyuchang.github.com"/>
- <updated>2012-10-19T17:46:01+11:00</updated>
+ <updated>2012-10-30T22:36:51+11:00</updated>
  <id>http://jeffyuchang.github.com</id>
  <author>
    <name>Jeff Yu</name>
@@ -13,7 +13,137 @@
 
  
  <entry>
-   <title>Back to Basics - review notes on Database System Implementation I</title>
+   <title>Back To Basics -  Review notes on Robotic Software Architecture Course</title>
+   <link href="http://jeffyuchang.github.com/2012/10/30/back-to-basic-robotic-software-architecture"/>
+   <updated>2012-10-30T00:00:00+11:00</updated>
+   <id>hhttp://jeffyuchang.github.com/2012/10/30/back-to-basic-robotic-software-architecture</id>
+   <content type="html">&lt;p&gt;&lt;img src=&quot;../../../../images/robotic-world.png&quot; alt=&quot;Robotic and World&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;As the above picture shows, the robot senses the world from its sensor, and then do some actions to the world. We can typically think of the world as a Map too make it not too abstract.&lt;/p&gt;
+
+&lt;p&gt;When dealing with robotics, we need to deal with uncerntainty and nosiy, for example, when you asked robot to turn left 90 degree, it could just turn about 85 degree, we called it having noisy, or maybe robot didn't move at all due to mechanic problems and the sensor is not perfect either, so we need to add the noisy to that too. Therefore, we need to take the nosiy into account when we are creating the model for it.&lt;/p&gt;
+
+&lt;h5&gt;Bayesian Localisation&lt;/h5&gt;
+
+&lt;p&gt;Assume the robot doesn't know its location, and then wants to localise himself in the world(e.g map), here we have some landmarks in the map that robot can sense via its sensor. It has two updates: &lt;em&gt;Motion Update&lt;/em&gt; and &lt;em&gt;Observation Update&lt;/em&gt;.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://en.wikipedia.org/wiki/Bayes'_theorem&quot;&gt;Bayes Rule&lt;/a&gt;:
+ P(S|O) = P(O|S) * P(S) / P(O) == likelihood * prior / evidence. Here S means state, O means observation.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://en.wikipedia.org/wiki/Kalman_filter&quot;&gt;Kalman Filter&lt;/a&gt;:
+ It is a special case of a Bayes’ filter with dynamics model and sensory model being linear &lt;a href=&quot;http://en.wikipedia.org/wiki/Normal_distribution&quot;&gt;Gaussian&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://en.wikipedia.org/wiki/Extended_Kalman_filter&quot;&gt;Extended Kalman Filter&lt;/a&gt;:
+  When the sensory model is nonlinear, then we may use this filter to make it like linear.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://en.wikipedia.org/wiki/Particle_filter&quot;&gt;Particle Filter&lt;/a&gt;:&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;p&gt;&lt;em&gt;Note&lt;/em&gt;:&lt;a href=&quot;http://swarmlab.unimaas.nl/wp-content/uploads/2012/07/fox2003bayesian.pdf&quot;&gt;Here is a nice rundown article&lt;/a&gt; with regard to these filters, and here are three series on understanding the Extended Kalman Filter (EKF.): &lt;a href=&quot;http://services.eng.uts.edu.au/~sdhuang/1D%20Kalman%20Filter_Shoudong.pdf&quot;&gt;PartI&lt;/a&gt;, &lt;a href=&quot;http://services.eng.uts.edu.au/~sdhuang/Kalman%20Filter_Shoudong.pdf&quot;&gt;PartII&lt;/a&gt; and &lt;a href=&quot;http://services.eng.uts.edu.au/~sdhuang/Extended%20Kalman%20Filter_Shoudong.pdf&quot;&gt;PartIII&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h5&gt;Search&lt;/h5&gt;
+
+&lt;p&gt;Search Problem is just model. Firstly, we map the problem to Search problem into following properties: &lt;strong&gt;States, Actions, Successor Function and Goal test&lt;/strong&gt;. Below are some Search Algorithms(b denotes the branching factor, m denotes the tree's depth for the time complexity and space complexity):&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://en.wikipedia.org/wiki/Depth-first_search&quot;&gt;Depth-First Search&lt;/a&gt;:  Takes time O(b&lt;sup&gt;m&lt;/sup&gt; ), Spaces that fringe take O(bm)&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://en.wikipedia.org/wiki/Breadth-first_search&quot;&gt;Breath-First Search&lt;/a&gt;: Takes time O(b&lt;sup&gt;m&lt;/sup&gt; ), Spaces that fringe take O(b&lt;sup&gt;m&lt;/sup&gt; )&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://en.wikipedia.org/wiki/Uniform-cost_search&quot;&gt;Uniform Cost Search&lt;/a&gt;: This one is typically used in the weighted tree. Strategy: expand a cheapest node first. Fringe is a priority queue(priority: cumulative cost)&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://en.wikipedia.org/wiki/A*_search_algorithm&quot;&gt;A&lt;sup&gt;*&lt;/sup&gt; Search&lt;/a&gt;: The priority queue is ordered by f(n) = g(n) + h(n). Here the g(n) denotes the cost that already took, the h(n) means the hurestic cost to the goal. This algorithm is a cornerstone of search, and has been used in a lot of fields.&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;h5&gt;Graph Search&lt;/h5&gt;
+
+&lt;p&gt;Idea: never expand a state twice&lt;/p&gt;
+
+&lt;p&gt;Implementation:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Tree search + a set of expanded states (&quot;closed set&quot;)&lt;/li&gt;
+&lt;li&gt;Expand the search tree node-by-node, but...&lt;/li&gt;
+&lt;li&gt;Before expanding a node, check to make sure its state is new&lt;/li&gt;
+&lt;li&gt;if not new, skip it&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;p&gt;In above algorithms, we are always dealing with deterministic situation, for cases involved non-determinisc (stochastic), we will use the &lt;strong&gt;Markov Decision Process(aka MDP)&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h5&gt;Markov Decision Processes&lt;/h5&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://en.wikipedia.org/wiki/Markov_decision_process&quot;&gt;MDP&lt;/a&gt; is used to find a optimal way in the non-deterministic(stochastic) search area. It uses the &lt;a href=&quot;http://en.wikipedia.org/wiki/Bellman_equation#Example&quot;&gt;Bellman Equation&lt;/a&gt; to do the calculation.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;../../../../images/mdp_bellman_equation.png&quot; alt=&quot;Bellman Equation&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Here is the denotation that we used in the formula:
+ &lt;strong&gt;S&lt;/strong&gt; -&gt; state, &lt;strong&gt;R&lt;/strong&gt; -&gt; Reward, &lt;strong&gt;A&lt;/strong&gt; -&gt; Action, &lt;strong&gt;O&lt;/strong&gt; -&gt; Obersavation, &lt;strong&gt;T&lt;/strong&gt; -&gt; Transition Function.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Value Iteration:
+  The formulation is as following:
+  &lt;img src=&quot;../../../../images/mdp_vi.png&quot; alt=&quot;Value Iteration Bellman Equation&quot; /&gt;&lt;/li&gt;
+&lt;li&gt;Policy Iteration:
+  The formulation is as following:
+  &lt;img src=&quot;../../../../images/mdp_pi.png&quot; alt=&quot;Policy Iteration Bellman Equation&quot; /&gt;&lt;/li&gt;
+&lt;li&gt;Prioritized-Sweeping:
+
+&lt;blockquote&gt;&lt;p&gt;Use a Priority Queue to update nodes in a smart order, on each update, track |ΔV|, and add it to the priority of all upstream states. Reset priority to 0 when a node is pulled from the queue and updated.&lt;/p&gt;&lt;/blockquote&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;p&gt;MDP applies to the fully observable, &lt;a href=&quot;http://en.wikipedia.org/wiki/Partially_observable_Markov_decision_process&quot;&gt;POMDP&lt;/a&gt; technique applies to the Partical Observal case. In both MDP and POMDP we assume that we know the &lt;strong&gt;Transition function (T)&lt;/strong&gt; and &lt;strong&gt;Reward Function (R)&lt;/strong&gt;, in the cases that we don't know them, it will lead to the next section, Reinforcement Learning.&lt;/p&gt;
+
+&lt;h5&gt;Reinforcement Learning&lt;/h5&gt;
+
+&lt;p&gt;Because we don't have the T and R function, we can use the following techniques:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;a href=&quot;http://en.wikipedia.org/wiki/Temporal_difference_learning&quot;&gt;Temporal Difference Learning&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt; &lt;img src=&quot;../../../../images/rl_td_algorithm.png&quot; alt=&quot;TD&quot; /&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;a href=&quot;http://en.wikipedia.org/wiki/Q-learning&quot;&gt;Q-Learning&lt;/a&gt; (aka. Model free technique)&lt;/p&gt;
+
+&lt;p&gt; &lt;img src=&quot;../../../../images/rl_q_learning.png&quot; alt=&quot;Q learning&quot; /&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;h5&gt;Optimisation&lt;/h5&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://en.wikipedia.org/wiki/Gradient_descent&quot;&gt;Gradient Descent&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://en.wikipedia.org/wiki/Function_approximation&quot;&gt;Function Approximation&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://optlab-server.sce.carleton.ca/POAnimations2007/NonLinear7.html&quot;&gt;Downhill Simplex Algorithm&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://wiki.ece.cmu.edu/ddl/index.php/Powell's_method&quot;&gt;Powell's Method (Conjugate Gradient)&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;h5&gt;Planning&lt;/h5&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://en.wikipedia.org/wiki/State_space_planning&quot;&gt;State space planning&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Plan space planning&lt;/li&gt;
+&lt;/ul&gt;
+
+
+&lt;h5&gt;Summary&lt;/h5&gt;
+
+&lt;p&gt;Above is a list of bulletins that were taught in this course, guess it is a bit hard for others to follow due to its simplicity, most likely it is for myself use. :)&lt;/p&gt;
+
+&lt;h4&gt;Reference&lt;/h4&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://www.cse.unsw.edu.au/~cs3431/wiki/&quot;&gt;UNSW CS3431 Robotic Software Architecture Course&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://www.ai-class.com&quot;&gt;Introdcution to Artificial Intelligence&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://www.udacity.com/overview/Course/cs373/CourseRev/apr2012&quot;&gt;CS373 Programming A Robotic Car&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://www.edx.org/courses/BerkeleyX/CS188.1x/2012_Fall/about&quot;&gt;CS188.1x: Artificial Intelligence&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://artint.info/index.html&quot;&gt;Artificial Intelligence, foundations of computational agents&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://comp3431.wikidot.com&quot;&gt;CS3431 Study Note&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+</content>
+ </entry>
+ 
+ <entry>
+   <title>Back To Basics - Review notes on Database System Implementation I</title>
    <link href="http://jeffyuchang.github.com/2012/10/19/back-to-basics-dbms-1"/>
    <updated>2012-10-19T00:00:00+11:00</updated>
    <id>hhttp://jeffyuchang.github.com/2012/10/19/back-to-basics-dbms-1</id>
@@ -119,10 +249,14 @@ There are Heap Files, Sorted Files and Hash Files. For hash files, we see both t
 
 &lt;p&gt;Indexing is a very important feature in Database, because it can improve the time cost of selection dramatically, esepcially for the big data in each row. Indexes are stored in separate files to data.&lt;/p&gt;
 
-&lt;p&gt;A relation/file may have:
-- A index on single attribute. (useful for handling primary/secondary key queries e.g. one, range)
-- Separate indexes on many attributes. (useful for handling queries involving several fields)
-- A combined index incorporating many attributes. (multi-dimensional indexing for e.g. spatial, multimedia databases)&lt;/p&gt;
+&lt;p&gt;A relation/file may have:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;A index on single attribute. (useful for handling primary/secondary key queries e.g. one, range)&lt;/li&gt;
+&lt;li&gt;Separate indexes on many attributes. (useful for handling queries involving several fields)&lt;/li&gt;
+&lt;li&gt;A combined index incorporating many attributes. (multi-dimensional indexing for e.g. spatial, multimedia databases)&lt;/li&gt;
+&lt;/ul&gt;
+
 
 &lt;p&gt;Two types of index, one is &lt;em&gt;Dense&lt;/em&gt;: one index entry per data tuple, the other one is &lt;em&gt;Sparse&lt;/em&gt;: one index entry per data page (requires sorted data file).&lt;/p&gt;
 
