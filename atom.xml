@@ -4,7 +4,7 @@
  <title>Jeff Yu @ IT</title>
  <link href="http://jeffyuchang.github.com/atom.xml" rel="self"/>
  <link href="http://jeffyuchang.github.com"/>
- <updated>2012-10-30T22:36:51+11:00</updated>
+ <updated>2012-10-30T22:52:24+11:00</updated>
  <id>http://jeffyuchang.github.com</id>
  <author>
    <name>Jeff Yu</name>
@@ -13,7 +13,7 @@
 
  
  <entry>
-   <title>Back To Basics -  Review notes on Robotic Software Architecture Course</title>
+   <title>Back To Basics -  Review notes on Robot Software Architecture Course</title>
    <link href="http://jeffyuchang.github.com/2012/10/30/back-to-basic-robotic-software-architecture"/>
    <updated>2012-10-30T00:00:00+11:00</updated>
    <id>hhttp://jeffyuchang.github.com/2012/10/30/back-to-basic-robotic-software-architecture</id>
@@ -131,7 +131,7 @@
 &lt;h4&gt;Reference&lt;/h4&gt;
 
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&quot;http://www.cse.unsw.edu.au/~cs3431/wiki/&quot;&gt;UNSW CS3431 Robotic Software Architecture Course&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://www.cse.unsw.edu.au/~cs3431/wiki/&quot;&gt;UNSW CS3431 Robot Software Architecture Course&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&quot;https://www.ai-class.com&quot;&gt;Introdcution to Artificial Intelligence&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&quot;http://www.udacity.com/overview/Course/cs373/CourseRev/apr2012&quot;&gt;CS373 Programming A Robotic Car&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&quot;https://www.edx.org/courses/BerkeleyX/CS188.1x/2012_Fall/about&quot;&gt;CS188.1x: Artificial Intelligence&lt;/a&gt;&lt;/li&gt;
