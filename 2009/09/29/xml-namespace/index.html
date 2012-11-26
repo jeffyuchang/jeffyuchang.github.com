@@ -65,13 +65,6 @@
 
 <p>XML的namespace属性类似java中的packagename,是为了使得唯一性.在xml schema, wsdl or bpel中,我们一般会看到如下的定义</p>
 
-<div class="highlight"><pre><code class="xml"> <span class="nt">&lt;definitions</span> <span class="na">name=</span><span class="s">&quot;echoWsdl&quot;</span>        <span class="na">targetNamespace=</span><span class="s">&quot;http://www.jboss.org/jeffyu/bpel/wsdl&quot;</span>        <span class="na">xmlns:tns=</span><span class="s">&quot;http://www.jboss.org/jeffyu/bpel/wsdl&quot;</span>        <span class="na">xmlns:plnk=</span><span class="s">&quot;http://docs.oasis-open.org/wsbpel/2.0/plnktype&quot;</span>        <span class="na">xmlns=</span><span class="s">&quot;http://schemas.xmlsoap.org/wsdl/&quot;</span>        <span class="na">xmlns:xsd=</span><span class="s">&quot;http://www.w3.org/2001/XMLSchema&quot;</span>        <span class="na">xmlns:soap=</span><span class="s">&quot;http://schemas.xmlsoap.org/wsdl/soap/&quot;</span><span class="nt">&gt;</span>
-....
- <span class="nt">&lt;/definitions&gt;</span>
-</code></pre>
-</div>
-
-
 <p>这里面,就要涉及到我们所要谈的default namespace 和 targetNamespace.
 先看普通的定义,比如:</p>
 

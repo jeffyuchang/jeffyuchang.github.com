@@ -65,47 +65,7 @@
 
 <p>I added a command to show all of tables in the db, below is the build.xml that I used.</p>
 
-<div class="highlight"><pre><code class="xml"> <span class="nt">&lt;target</span> <span class="na">name=</span><span class="s">&quot;db.show.tables&quot;</span>
-             <span class="na">depends=</span><span class="s">&quot;log.properties, copy.ojdbc&quot;</span>
-             <span class="na">description=</span><span class="s">&quot;show tables in db&quot;</span><span class="nt">&gt;</span>;
-   <span class="nt">&lt;sql</span> <span class="na">driver=</span><span class="s">&quot;${driver}&quot;</span>
-        <span class="na">url=</span><span class="s">&quot;${connection.url}&quot;</span>
-        <span class="na">userid=</span><span class="s">&quot;${username}&quot;</span>
-        <span class="na">password=</span><span class="s">&quot;${password}&quot;</span>
-        <span class="na">onerror=</span><span class="s">&quot;continue&quot;</span>
-        <span class="na">print=</span><span class="s">&quot;true&quot;</span><span class="nt">&gt;</span>;
-     ${show.table.sql}
-     <span class="nt">&lt;classpath&gt;</span>;
-       <span class="nt">&lt;fileset</span> <span class="na">dir=</span><span class="s">&quot;drivers&quot;</span><span class="nt">&gt;</span>;
-           <span class="nt">&lt;include</span> <span class="na">name=</span><span class="s">&quot;*.jar&quot;</span><span class="nt">/&gt;</span>;
-       <span class="nt">&lt;/fileset&gt;</span>;
-     <span class="nt">&lt;/classpath&gt;</span>;
-   <span class="nt">&lt;/sql&gt;</span>;
-   <span class="nt">&lt;/target&gt;</span>;
-</code></pre>
-</div>
-
-
 <p>Different database vendor has its own syntax for showing tables, as I defined below.</p>
-
-<div class="highlight"><pre><code class="xml"><span class="nt">&lt;condition</span> <span class="na">property=</span><span class="s">&quot;show.table.sql&quot;</span> <span class="na">value=</span><span class="s">&quot;show tables;&quot;</span><span class="nt">&gt;</span>;
-       <span class="nt">&lt;equals</span> <span class="na">arg1=</span><span class="s">&quot;${database}&quot;</span> <span class="na">arg2=</span><span class="s">&quot;mysql&quot;</span> <span class="nt">/&gt;</span>;
- <span class="nt">&lt;/condition&gt;</span>;
- 
- <span class="nt">&lt;condition</span> <span class="na">property=</span><span class="s">&quot;show.table.sql&quot;</span> <span class="na">value=</span><span class="s">&quot;select table_name from information_schema.tables where table_schema=&#39;public&#39; and table_type=&#39;BASE TABLE&#39;;&quot;</span><span class="nt">&gt;</span>;
-       <span class="nt">&lt;equals</span> <span class="na">arg1=</span><span class="s">&quot;${database}&quot;</span> <span class="na">arg2=</span><span class="s">&quot;postgres&quot;</span> <span class="nt">/&gt;</span>;
- <span class="nt">&lt;/condition&gt;</span>;
-
- <span class="nt">&lt;condition</span> <span class="na">property=</span><span class="s">&quot;show.table.sql&quot;</span> <span class="na">value=</span><span class="s">&quot;select table_name from tabs;&quot;</span><span class="nt">&gt;</span>;
-       <span class="nt">&lt;equals</span> <span class="na">arg1=</span><span class="s">&quot;${database}&quot;</span> <span class="na">arg2=</span><span class="s">&quot;oracle&quot;</span> <span class="nt">/&gt;</span>;
- <span class="nt">&lt;/condition&gt;</span>;
-
- <span class="nt">&lt;condition</span> <span class="na">property=</span><span class="s">&quot;show.table.sql&quot;</span> <span class="na">value=</span><span class="s">&quot;select name from riftsaw..sysobjects where xtype = &#39;U&#39;;&quot;</span><span class="nt">&gt;</span>;
-       <span class="nt">&lt;equals</span> <span class="na">arg1=</span><span class="s">&quot;${database}&quot;</span> <span class="na">arg2=</span><span class="s">&quot;sqlserver&quot;</span> <span class="nt">/&gt;</span>;
- <span class="nt">&lt;/condition&gt;</span>;
-</code></pre>
-</div>
-
 
 <p>By using this approach, you don't need to install those db clients, which could save you a lot of time.</p>
 

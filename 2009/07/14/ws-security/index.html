@@ -89,22 +89,6 @@
 
 <p>我们下面这个例子就是使用Java的Cipher类来加密.</p>
 
-<div class="highlight"><pre><code class="java"><span class="n">KeyGenerator</span> <span class="n">keygen</span> <span class="o">=</span> <span class="n">KeyGenerator</span><span class="o">.</span><span class="na">getInstance</span><span class="o">(</span><span class="s">&quot;DES&quot;</span><span class="o">);</span>
-<span class="n">keygen</span><span class="o">.</span><span class="na">init</span><span class="o">(</span><span class="mi">56</span><span class="o">);</span>
-<span class="n">SecretKey</span> <span class="n">key</span> <span class="o">=</span> <span class="n">keygen</span><span class="o">.</span><span class="na">generateKey</span><span class="o">();</span>
-
-
-<span class="n">Cipher</span> <span class="n">cipher</span> <span class="o">=</span> <span class="n">Cipher</span><span class="o">.</span><span class="na">getInstance</span><span class="o">(</span><span class="s">&quot;DES/ECB/PKCS5Padding&quot;</span><span class="o">);</span>
-<span class="n">cipher</span><span class="o">.</span><span class="na">init</span><span class="o">(</span><span class="n">Cipher</span><span class="o">.</span><span class="na">ENCRYPT_MODE</span><span class="o">,</span> <span class="n">key</span><span class="o">);</span>
-
-<span class="kt">byte</span><span class="o">[]</span> <span class="n">cipherText</span> <span class="o">=</span> <span class="n">cipher</span><span class="o">.</span><span class="na">doFinal</span><span class="o">(</span><span class="s">&quot;This is clear text&quot;</span><span class="o">.</span><span class="na">getBytes</span><span class="o">(</span><span class="s">&quot;UTF-8&quot;</span><span class="o">));</span>
-
-<span class="n">cipher</span><span class="o">.</span><span class="na">init</span><span class="o">(</span><span class="n">Cipher</span><span class="o">.</span><span class="na">DECRYPT_MODE</span><span class="o">,</span> <span class="n">key</span><span class="o">);</span>
-<span class="kt">byte</span><span class="o">[]</span> <span class="n">clearText</span> <span class="o">=</span> <span class="n">cipher</span><span class="o">.</span><span class="na">doFinal</span><span class="o">(</span><span class="n">cipherText</span><span class="o">);</span>
-</code></pre>
-</div>
-
-
 <p>先是生成一个56的DES的加密钥匙, 然后采用DES算法, ECB加密模式, PKCS5Padding补足方式来加密.</p>
 
 <h5>非对称加密(Asymmetric Encryption)</h5>
@@ -118,22 +102,6 @@
 非对称加密的算法主要有两种: RSA 和 Diffie-Hellman. RSA是最为广泛使用的一种加密算法.
 相对应的,我们就得使用keypair来加密解密,代码如下:</p>
 
-<div class="highlight"><pre><code class="java"><span class="n">KeyPairGenerator</span> <span class="n">keyGen</span> <span class="o">=</span> <span class="n">KeyPairGenerator</span><span class="o">.</span><span class="na">getInstance</span><span class="o">(</span><span class="s">&quot;RSA&quot;</span><span class="o">);</span>
-<span class="n">keyGen</span><span class="o">.</span><span class="na">initialize</span><span class="o">(</span><span class="mi">1024</span><span class="o">);</span>
-<span class="n">KeyPair</span> <span class="n">keypair</span> <span class="o">=</span> <span class="n">keyGen</span><span class="o">.</span><span class="na">generateKeyPair</span><span class="o">();</span>
-
-
-<span class="n">Cipher</span> <span class="n">cipher</span> <span class="o">=</span> <span class="n">Cipher</span><span class="o">.</span><span class="na">getInstance</span><span class="o">(</span><span class="s">&quot;RSA/ECB/PKCS1Padding&quot;</span><span class="o">);</span>
-<span class="n">cipher</span><span class="o">.</span><span class="na">init</span><span class="o">(</span><span class="n">Cipher</span><span class="o">.</span><span class="na">ENCRYPT_MODE</span><span class="o">,</span> <span class="n">keypair</span><span class="o">.</span><span class="na">getPublic</span><span class="o">());</span>
-
-<span class="kt">byte</span><span class="o">[]</span> <span class="n">cipherText</span> <span class="o">=</span> <span class="n">cipher</span><span class="o">.</span><span class="na">doFinal</span><span class="o">(</span><span class="s">&quot;This is clear text&quot;</span><span class="o">.</span><span class="na">getBytes</span><span class="o">(</span><span class="s">&quot;UTF-8&quot;</span><span class="o">));</span>
-
-<span class="n">cipher</span><span class="o">.</span><span class="na">init</span><span class="o">(</span><span class="n">Cipher</span><span class="o">.</span><span class="na">DECRYPT_MODE</span><span class="o">,</span> <span class="n">keypair</span><span class="o">.</span><span class="na">getPrivate</span><span class="o">());</span>
-<span class="kt">byte</span><span class="o">[]</span> <span class="n">clearText</span> <span class="o">=</span> <span class="n">cipher</span><span class="o">.</span><span class="na">doFinal</span><span class="o">(</span><span class="n">cipherText</span><span class="o">);</span>
-</code></pre>
-</div>
-
-
 <p>不同的是,我们用公钥加密,然后用私钥来解密. 当然了,我们也可以用私钥加密,然后公钥来解密,这在我们后面的数字签名中会用到.</p>
 
 <h5>完整性(Integrity)</h5>
@@ -143,13 +111,6 @@
 常见的消息摘要(Message-digest)算法有: MD2, MD5 (128位的算法), SHA-1 (160位的算法)
 在Java中,MessageDigest类来负责信息摘要,使用大致如下:</p>
 
-<div class="highlight"><pre><code class="java"><span class="n">MessageDigest</span> <span class="n">messageDigest</span> <span class="o">=</span> <span class="n">MessageDigest</span><span class="o">.</span><span class="na">getInstance</span><span class="o">(</span><span class="s">&quot;MD5&quot;</span><span class="o">);</span>
-<span class="n">messageDigest</span><span class="o">.</span><span class="na">update</span><span class="o">(</span><span class="s">&quot;TestMessage&quot;</span><span class="o">.</span><span class="na">getBytes</span><span class="o">(</span><span class="s">&quot;UTF-8&quot;</span><span class="o">));</span>
-<span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="k">new</span> <span class="n">String</span><span class="o">(</span><span class="n">messageDigest</span><span class="o">.</span><span class="na">digest</span><span class="o">(),</span> <span class="s">&quot;UTF-8&quot;</span><span class="o">));</span>
-</code></pre>
-</div>
-
-
 <h5>真实性(Authenticity)</h5>
 
 <p>上面我们解决了保密性和完整性,那我们怎么来保证Bob收到的这个信息就是Alice发的吗?有可能是Eva借用Alice的名字,拿到Bob的公钥发的.
@@ -157,27 +118,6 @@
 数字签名的算法有两种: RSA, DSA(Digital Signature Algorithm). 注意, RSA算法,既可用于加密,也可以用于数字签名. 但是DSA只可用于数字签名.
 JDK支持以下的组合, MD2/RSA, MD5/RSA, SHA1/DSA, SHA1/RSA.
 下面我们直接看JDK中Siganiture类来签名的使用.</p>
-
-<div class="highlight"><pre><code class="java"><span class="n">KeyPairGenerator</span> <span class="n">keyGen</span> <span class="o">=</span> <span class="n">KeyPairGenerator</span><span class="o">.</span><span class="na">getInstance</span><span class="o">(</span><span class="s">&quot;RSA&quot;</span><span class="o">);</span>
-<span class="n">keyGen</span><span class="o">.</span><span class="na">initialize</span><span class="o">(</span><span class="mi">1024</span><span class="o">);</span>
-<span class="n">KeyPair</span> <span class="n">keypair</span> <span class="o">=</span> <span class="n">keyGen</span><span class="o">.</span><span class="na">generateKeyPair</span><span class="o">();</span>
-
-
-<span class="n">Signature</span> <span class="n">sig</span> <span class="o">=</span> <span class="n">Signature</span><span class="o">.</span><span class="na">getInstance</span><span class="o">(</span><span class="s">&quot;MD5WithRSA&quot;</span><span class="o">);</span>
-<span class="n">sig</span><span class="o">.</span><span class="na">initSign</span><span class="o">(</span><span class="n">keypair</span><span class="o">.</span><span class="na">getPrivate</span><span class="o">());</span>
-<span class="n">sig</span><span class="o">.</span><span class="na">update</span><span class="o">(</span><span class="s">&quot;This is message&quot;</span><span class="o">.</span><span class="na">getBytes</span><span class="o">(</span><span class="s">&quot;UTF-8&quot;</span><span class="o">));</span>
-
-<span class="kt">byte</span><span class="o">[]</span> <span class="n">signature</span> <span class="o">=</span> <span class="n">sig</span><span class="o">.</span><span class="na">sign</span><span class="o">();</span>
-
-<span class="c1">//Verify the signature</span>
-<span class="n">sig</span><span class="o">.</span><span class="na">initVerify</span><span class="o">(</span><span class="n">keypair</span><span class="o">.</span><span class="na">getPublic</span><span class="o">());</span>
-<span class="n">sig</span><span class="o">.</span><span class="na">update</span><span class="o">(</span><span class="s">&quot;This is message&quot;</span><span class="o">.</span><span class="na">getBytes</span><span class="o">(</span><span class="s">&quot;UTF-8&quot;</span><span class="o">));</span>
-<span class="k">if</span> <span class="o">(</span><span class="n">sig</span><span class="o">.</span><span class="na">verify</span><span class="o">(</span><span class="n">signature</span><span class="o">))</span> <span class="o">{</span>
-  <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;Signature verified.&quot;</span><span class="o">);</span>
-<span class="o">}</span>
-</code></pre>
-</div>
-
 
 <p>到目前为止,我们介绍了加密,信息完整,数字签名这三个概念,应该说可以是完成了,你都懂了.</p>
 

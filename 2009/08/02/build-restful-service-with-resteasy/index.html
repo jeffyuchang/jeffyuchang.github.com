@@ -72,38 +72,6 @@
 <p>Firstly, lets create the project, I am using the m2eclipse plugin to create a maven blank project. Open up the pom.xml, add the resteay-jaxrs, resteasy-jaxb-provider libs in our pom.xml, in order to download the resteasy-jaxrs, you need to add the jboss maven repo in the repository.
 The repository and the dependency would be like:</p>
 
-<div class="highlight"><pre><code class="xml"><span class="nt">&lt;repositories&gt;</span>
-  <span class="nt">&lt;repository&gt;</span>
-   <span class="nt">&lt;id&gt;</span>JBossMavenRepo<span class="nt">&lt;/id&gt;</span>
-   <span class="nt">&lt;name&gt;</span>JBoss Maven2 repo<span class="nt">&lt;/name&gt;</span>
-   <span class="nt">&lt;url&gt;</span>http://repository.jboss.org/maven2<span class="nt">&lt;/url&gt;</span>
-   <span class="nt">&lt;releases&gt;</span>true<span class="nt">&lt;/releases&gt;</span>
-   <span class="nt">&lt;snapshots&gt;</span>false<span class="nt">&lt;/snapshots&gt;</span>
-  <span class="nt">&lt;/repository&gt;</span>
- <span class="nt">&lt;/repositories&gt;</span>
-
- <span class="nt">&lt;dependencies&gt;</span>
-  <span class="nt">&lt;dependency&gt;</span>
-   <span class="nt">&lt;groupId&gt;</span>junit<span class="nt">&lt;/groupId&gt;</span>
-   <span class="nt">&lt;artifactId&gt;</span>junit<span class="nt">&lt;/artifactId&gt;</span>
-   <span class="nt">&lt;version&gt;</span>4.4<span class="nt">&lt;/version&gt;</span>
-   <span class="nt">&lt;scope&gt;</span>test<span class="nt">&lt;/scope&gt;</span>
-  <span class="nt">&lt;/dependency&gt;</span>
-  <span class="nt">&lt;dependency&gt;</span>
-   <span class="nt">&lt;groupId&gt;</span>org.jboss.resteasy<span class="nt">&lt;/groupId&gt;</span>
-   <span class="nt">&lt;artifactId&gt;</span>resteasy-jaxrs<span class="nt">&lt;/artifactId&gt;</span>
-   <span class="nt">&lt;version&gt;</span>1.1.GA<span class="nt">&lt;/version&gt;</span>
-  <span class="nt">&lt;/dependency&gt;</span>
-  <span class="nt">&lt;dependency&gt;</span>
-   <span class="nt">&lt;groupId&gt;</span>org.jboss.resteasy<span class="nt">&lt;/groupId&gt;</span>
-   <span class="nt">&lt;artifactId&gt;</span>resteasy-jaxb-provider<span class="nt">&lt;/artifactId&gt;</span>
-   <span class="nt">&lt;version&gt;</span>1.1.GA<span class="nt">&lt;/version&gt;</span>
-  <span class="nt">&lt;/dependency&gt;</span>
- <span class="nt">&lt;/dependencies&gt;</span>  
-</code></pre>
-</div>
-
-
 <p>Run: mvn eclipse:eclipse, it should generate all the eclipse needed workspace files.</p>
 
 <h5>Build the Resource service</h5>
@@ -111,22 +79,6 @@ The repository and the dependency would be like:</p>
 <p>Here, I created the UserService interface, which takes care of users CRUD operation, and UserServiceImpl to implement UserService. I am a guy that like to keep the API and implementation separated as much as possible. (Because I found people would typically created a resource class directly in building restful service. like they would name it as UserResource class directly, don't have UserService interface. I still prefer to have interface as the contract.) As the JAX-RS 1.0 spec supports that put the annotation on its interface, so it is ok for us to keep API and impl separated.</p>
 
 <p>Lets look at the UserService firstly.</p>
-
-<div class="highlight"><pre><code class="java"><span class="kd">public</span> <span class="kd">interface</span> <span class="nc">UserService</span> <span class="o">{</span>
-
- <span class="nd">@GET</span>
- <span class="nd">@Path</span><span class="o">(</span><span class="s">&quot;{id}&quot;</span><span class="o">)</span>
- <span class="nd">@Produces</span><span class="o">({</span><span class="s">&quot;application/xml&quot;</span><span class="o">})</span>
- <span class="kd">public</span> <span class="n">User</span> <span class="nf">getUser</span><span class="o">(</span><span class="nd">@PathParam</span><span class="o">(</span><span class="s">&quot;id&quot;</span><span class="o">)</span> <span class="kt">long</span> <span class="n">id</span><span class="o">);</span>
-
- <span class="nd">@POST</span>
- <span class="nd">@Consumes</span><span class="o">(</span><span class="s">&quot;application/xml&quot;</span><span class="o">)</span>
- <span class="kd">public</span> <span class="n">Response</span> <span class="nf">addUser</span><span class="o">(</span><span class="n">User</span> <span class="n">user</span><span class="o">);</span>
-
-<span class="o">}</span>
-</code></pre>
-</div>
-
 
 <p>JAX-RS spec introduced a set of annotations to help us to expose the java bean as RESTful service.</p>
 
@@ -146,74 +98,13 @@ The repository and the dependency would be like:</p>
 
 <p>Now, let's look at User Object itself,</p>
 
-<div class="highlight"><pre><code class="java"><span class="nd">@XmlRootElement</span><span class="o">(</span><span class="n">name</span><span class="o">=</span><span class="s">&quot;user&quot;</span><span class="o">)</span>
-<span class="kd">public</span> <span class="kd">class</span> <span class="nc">User</span> <span class="o">{</span>
-
- <span class="nd">@XmlAttribute</span>
- <span class="kd">public</span> <span class="kt">long</span> <span class="nf">getId</span><span class="o">()</span> <span class="o">{</span>
-  <span class="k">return</span> <span class="n">id</span><span class="o">;</span>
- <span class="o">}</span>
- <span class="nd">@XmlElement</span>
- <span class="kd">public</span> <span class="n">String</span> <span class="nf">getUsername</span><span class="o">()</span> <span class="o">{</span>
-  <span class="k">return</span> <span class="n">username</span><span class="o">;</span>
- <span class="o">}</span>
- <span class="nd">@XmlElement</span>
- <span class="kd">public</span> <span class="n">String</span> <span class="nf">getEmail</span><span class="o">()</span> <span class="o">{</span>
-  <span class="k">return</span> <span class="n">email</span><span class="o">;</span>
- <span class="o">}</span>
-<span class="o">.....</span>
-<span class="o">}</span>
-</code></pre>
-</div>
-
-
 <p>Here, I omitted the class memeber and its setter methods. You can see that our domain object has the JAXB specific annotation.</p>
 
 <p>Let's step back and look at what we are trying to do in the UserService, we want client to send a xml file over HTTP to add a User, so we need to have a data binding lib that convert the xml to Java Object, thats the reason that we introduced the JAXB annotation.</p>
 
 <p>Our User Object corresponding xml would be like following:</p>
 
-<div class="highlight"><pre><code class="xml"><span class="nt">&lt;user</span> <span class="na">id=</span><span class="s">&quot;1&quot;</span><span class="nt">&gt;</span>
- <span class="nt">&lt;username&gt;</span>TestUser<span class="nt">&lt;/username&gt;</span>
- <span class="nt">&lt;email&gt;</span>testuser@test.com<span class="nt">&lt;/email&gt;</span>
-<span class="nt">&lt;/user&gt;</span>
-</code></pre>
-</div>
-
-
 <p>Now, let's look at the UserServiceImpl class.</p>
-
-<div class="highlight"><pre><code class="java"><span class="nd">@Path</span><span class="o">(</span><span class="s">&quot;/user&quot;</span><span class="o">)</span>
-<span class="kd">public</span> <span class="kd">class</span> <span class="nc">UserServiceImpl</span> <span class="kd">implements</span> <span class="n">UserService</span><span class="o">{</span>
-
-   <span class="kd">private</span> <span class="n">Map</span> <span class="n">userDB</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ConcurrentHashMap</span><span class="o">();</span>
-   <span class="kd">private</span> <span class="n">AtomicLong</span> <span class="n">idCounter</span> <span class="o">=</span> <span class="k">new</span> <span class="n">AtomicLong</span><span class="o">();</span>
-
- <span class="kd">public</span> <span class="nf">UserServiceImpl</span><span class="o">()</span> <span class="o">{</span>
-  <span class="n">User</span> <span class="n">user</span> <span class="o">=</span> <span class="k">new</span> <span class="n">User</span><span class="o">();</span>
-  <span class="n">user</span><span class="o">.</span><span class="na">setId</span><span class="o">(</span><span class="mi">100</span><span class="o">);</span>
-  <span class="n">user</span><span class="o">.</span><span class="na">setUsername</span><span class="o">(</span><span class="s">&quot;jeff.yuchang&quot;</span><span class="o">);</span>
-  <span class="n">user</span><span class="o">.</span><span class="na">setEmail</span><span class="o">(</span><span class="s">&quot;jeff.yuchang@jboss.org&quot;</span><span class="o">);</span>
-  <span class="n">userDB</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">Long</span><span class="o">.</span><span class="na">valueOf</span><span class="o">(</span><span class="mi">100</span><span class="o">),</span> <span class="n">user</span><span class="o">);</span>
- <span class="o">}</span>
-
- <span class="kd">public</span> <span class="n">Response</span> <span class="nf">addUser</span><span class="o">(</span><span class="n">User</span> <span class="n">user</span><span class="o">)</span> <span class="o">{</span>
-  <span class="n">user</span><span class="o">.</span><span class="na">setId</span><span class="o">(</span><span class="n">idCounter</span><span class="o">.</span><span class="na">getAndIncrement</span><span class="o">());</span>
-  <span class="n">userDB</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="n">user</span><span class="o">.</span><span class="na">getId</span><span class="o">(),</span> <span class="n">user</span><span class="o">);</span>
-  <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;User was created, its id &quot;</span> <span class="o">+</span> <span class="n">user</span><span class="o">.</span><span class="na">getId</span><span class="o">());</span>
-  <span class="k">return</span> <span class="n">Response</span><span class="o">.</span><span class="na">created</span><span class="o">(</span><span class="n">URI</span><span class="o">.</span><span class="na">create</span><span class="o">(</span><span class="s">&quot;/user/&quot;</span> <span class="o">+</span> <span class="n">user</span><span class="o">.</span><span class="na">getId</span><span class="o">())).</span><span class="na">build</span><span class="o">();</span>
- <span class="o">}</span>
-
- <span class="kd">public</span> <span class="n">User</span> <span class="nf">getUser</span><span class="o">(</span><span class="kt">long</span> <span class="n">id</span><span class="o">)</span> <span class="o">{</span>
-  <span class="kd">final</span> <span class="n">User</span> <span class="n">user</span> <span class="o">=</span> <span class="n">userDB</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">Long</span><span class="o">.</span><span class="na">valueOf</span><span class="o">(</span><span class="n">id</span><span class="o">));</span>
-  <span class="k">if</span> <span class="o">(</span><span class="kc">null</span> <span class="o">==</span> <span class="n">user</span><span class="o">)</span> <span class="o">{</span>
-   <span class="k">throw</span> <span class="k">new</span> <span class="nf">WebApplicationException</span><span class="o">(</span><span class="n">Response</span><span class="o">.</span><span class="na">Status</span><span class="o">.</span><span class="na">NOT_FOUND</span><span class="o">);</span>
-  <span class="o">}</span>
-  <span class="k">return</span> <span class="n">user</span><span class="o">;</span>
- <span class="o">}</span>
-</code></pre>
-</div>
-
 
 <p>This is a very simple implementation, you would understand it easily.
 <em>Note:</em> Here we got one thing to note is that we've used the '@Path' in our impl, we didn't include this in our UserService interface, the reason that I am doing so is because I didn't make it work when I deployed it into the Servlet container.
@@ -223,85 +114,15 @@ Until now, we've built a very simple resource, next is to deploy it under contai
 
 <p>In order to deploy our restful resource into Servlet container, we still need to add one class, which needs to extends the 'Application' object that defined in the JAX-RS. we can simply view the Application as a registry that allows us to register our resource into system.</p>
 
-<div class="highlight"><pre><code class="java"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">BlogApplication</span> <span class="kd">extends</span> <span class="n">Application</span> <span class="o">{</span>
-
-   <span class="kd">private</span> <span class="n">Set</span><span class="o">&lt;</span><span class="n">Object</span><span class="o">&gt;</span> <span class="n">singletons</span> <span class="o">=</span> <span class="k">new</span> <span class="n">HashSet</span><span class="o">&lt;</span><span class="n">Object</span><span class="o">&gt;();</span>
-   <span class="kd">private</span> <span class="n">Set</span><span class="o">&lt;</span><span class="n">Class</span><span class="o">&lt;?&gt;&gt;</span> <span class="n">empty</span> <span class="o">=</span> <span class="k">new</span> <span class="n">HashSet</span><span class="o">&lt;</span><span class="n">Class</span><span class="o">&lt;?&gt;&gt;();</span>
-
-   <span class="kd">public</span> <span class="nf">BlogApplication</span><span class="o">()</span> <span class="o">{</span>
-    <span class="n">singletons</span><span class="o">.</span><span class="na">add</span><span class="o">(</span><span class="k">new</span> <span class="n">UserServiceImpl</span><span class="o">());</span>
-   <span class="o">}</span>
-
- <span class="nd">@Override</span>
- <span class="kd">public</span> <span class="n">Set</span><span class="o">&lt;</span><span class="n">Class</span><span class="o">&lt;?&gt;&gt;</span> <span class="n">getClasses</span><span class="o">()</span> <span class="o">{</span>
-  <span class="k">return</span> <span class="n">empty</span><span class="o">;</span>
- <span class="o">}</span>
-
-    <span class="nd">@Override</span>
-    <span class="kd">public</span> <span class="n">Set</span><span class="o">&lt;</span><span class="n">Object</span><span class="o">&gt;</span> <span class="n">getSingletons</span><span class="o">()</span> <span class="o">{</span>
-       <span class="k">return</span> <span class="n">singletons</span><span class="o">;</span>
-    <span class="o">}</span>
-
-<span class="o">}</span>
-</code></pre>
-</div>
-
-
 <p>Once we've finished the Application class, we need to add the web.xml and then use the maven-war plugin file to build a war.</p>
 
 <p>The web.xml is as following:</p>
 
-<div class="highlight"><pre><code class="xml"><span class="nt">&lt;web-app&gt;</span>
-    <span class="nt">&lt;display-name&gt;</span>restful-blog<span class="nt">&lt;/display-name&gt;</span>
-
-    <span class="nt">&lt;context-param&gt;</span>
-      <span class="nt">&lt;param-name&gt;</span>javax.ws.rs.core.Application<span class="nt">&lt;/param-name&gt;</span>
-      <span class="nt">&lt;param-value&gt;</span>org.jboss.resteasy.blog.BlogApplication<span class="nt">&lt;/param-value&gt;</span>
-   <span class="nt">&lt;/context-param&gt;</span>
-
-    <span class="nt">&lt;listener&gt;</span>
-        <span class="nt">&lt;listener-class&gt;</span>org.jboss.resteasy.plugins.server.servlet.ResteasyBootstrap<span class="nt">&lt;/listener-class&gt;</span>
-    <span class="nt">&lt;/listener&gt;</span>
-
-    <span class="nt">&lt;servlet&gt;</span>
-        <span class="nt">&lt;servlet-name&gt;</span>Resteasy<span class="nt">&lt;/servlet-name&gt;</span>
-        <span class="nt">&lt;servlet-class&gt;</span>org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher<span class="nt">&lt;/servlet-class&gt;</span>
-    <span class="nt">&lt;/servlet&gt;</span>
-
-    <span class="nt">&lt;servlet-mapping&gt;</span>
-        <span class="nt">&lt;servlet-name&gt;</span>Resteasy<span class="nt">&lt;/servlet-name&gt;</span>
-        <span class="nt">&lt;url-pattern&gt;</span>/*<span class="nt">&lt;/url-pattern&gt;</span>
-    <span class="nt">&lt;/servlet-mapping&gt;</span>
-<span class="nt">&lt;/web-app&gt;</span>
-</code></pre>
-</div>
-
-
 <p>Also, add the maven-war-plugin into your pom.xml, like</p>
-
-<div class="highlight"><pre><code class="xml"><span class="nt">&lt;plugin&gt;</span>
-          <span class="nt">&lt;groupId&gt;</span>org.apache.maven.plugins<span class="nt">&lt;/groupId&gt;</span>
-          <span class="nt">&lt;artifactId&gt;</span>maven-war-plugin<span class="nt">&lt;/artifactId&gt;</span>
-          <span class="nt">&lt;version&gt;</span>2.0<span class="nt">&lt;/version&gt;</span>
-          <span class="nt">&lt;configuration&gt;</span>
-            <span class="nt">&lt;webappDirectory&gt;</span>src/webapp<span class="nt">&lt;/webappDirectory&gt;</span>
-          <span class="nt">&lt;/configuration&gt;</span>
-       <span class="nt">&lt;/plugin&gt;</span>
-</code></pre>
-</div>
-
 
 <p>Now, run the mvn clean install, you would see the restful-blog-1.0-SNAPSHOT.war in the target folder.</p>
 
 <p>Copy it into the $Tomcat/webapps, start the tomcat, and then access the following url: http://localhost:8080/restful-blog-1.0-SNAPSHOT/user/100, you should see the following xml file.</p>
-
-<div class="highlight"><pre><code class="java"><span class="o">&lt;</span><span class="n">user</span> <span class="n">id</span><span class="o">=</span><span class="s">&quot;100&quot;</span><span class="o">&gt;</span>
-<span class="o">&lt;</span><span class="n">email</span><span class="o">&gt;</span><span class="n">jeff</span><span class="o">.</span><span class="na">yuchang</span><span class="nd">@jboss.org</span><span class="o">&lt;/</span><span class="n">email</span><span class="o">&gt;</span>
-<span class="o">&lt;</span><span class="n">username</span><span class="o">&gt;</span><span class="n">jeff</span><span class="o">.</span><span class="na">yuchang</span><span class="o">&lt;/</span><span class="n">username</span><span class="o">&gt;</span>
-<span class="o">&lt;/</span><span class="n">user</span><span class="o">&gt;</span>
-</code></pre>
-</div>
-
 
 <p>OK, now we've successfully built and deployed a restful service. If you are a TDD(Test Driven Development) person like me, I guess you would like to use the embedded servlet container in your unit test.</p>
 
@@ -313,113 +134,13 @@ Until now, we've built a very simple resource, next is to deploy it under contai
 
 <p>We need to add the twjs webserver-1.3.3.jar and the servlet-2.5.jar in our pom.xml</p>
 
-<div class="highlight"><pre><code class="xml"> <span class="nt">&lt;dependency&gt;</span>
-   <span class="nt">&lt;groupId&gt;</span>tjws<span class="nt">&lt;/groupId&gt;</span>
-   <span class="nt">&lt;artifactId&gt;</span>webserver<span class="nt">&lt;/artifactId&gt;</span>
-   <span class="nt">&lt;version&gt;</span>1.3.3<span class="nt">&lt;/version&gt;</span>
-   <span class="nt">&lt;scope&gt;</span>test<span class="nt">&lt;/scope&gt;</span>
-  <span class="nt">&lt;/dependency&gt;</span>
-  <span class="nt">&lt;dependency&gt;</span>
-   <span class="nt">&lt;groupId&gt;</span>org.apache.geronimo.specs<span class="nt">&lt;/groupId&gt;</span>
-   <span class="nt">&lt;artifactId&gt;</span>geronimo-servlet_2.5_spec<span class="nt">&lt;/artifactId&gt;</span>
-   <span class="nt">&lt;version&gt;</span>1.2<span class="nt">&lt;/version&gt;</span>
-   <span class="nt">&lt;scope&gt;</span>test<span class="nt">&lt;/scope&gt;</span>
-  <span class="nt">&lt;/dependency&gt;</span>
-</code></pre>
-</div>
-
-
 <h5>Write a Base test to start the webserver</h5>
 
 <p>I write a following base test, which takes care of starting and stopping servlet server.</p>
 
-<div class="highlight"><pre><code class="java"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">BaseTest</span> <span class="kd">extends</span> <span class="n">Assert</span><span class="o">{</span>
-
- <span class="kd">protected</span> <span class="kd">static</span> <span class="n">TJWSEmbeddedJaxrsServer</span> <span class="n">server</span><span class="o">;</span>
-
- <span class="kd">protected</span> <span class="kd">static</span> <span class="n">ResteasyDeployment</span> <span class="n">deployment</span><span class="o">;</span>
-
- <span class="kd">protected</span> <span class="kd">static</span> <span class="kt">int</span> <span class="n">port</span> <span class="o">=</span> <span class="mi">8081</span><span class="o">;</span>
-
- <span class="nd">@BeforeClass</span>
- <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">initialize</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">Exception</span><span class="o">{</span>
-  <span class="n">server</span> <span class="o">=</span> <span class="k">new</span> <span class="n">TJWSEmbeddedJaxrsServer</span><span class="o">();</span>
-  <span class="n">deployment</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ResteasyDeployment</span><span class="o">();</span>
-  <span class="n">server</span><span class="o">.</span><span class="na">setDeployment</span><span class="o">(</span><span class="n">deployment</span><span class="o">);</span>
-  <span class="n">server</span><span class="o">.</span><span class="na">setPort</span><span class="o">(</span><span class="n">port</span><span class="o">);</span>
-  <span class="n">server</span><span class="o">.</span><span class="na">start</span><span class="o">();</span>
- <span class="o">}</span>
-
- <span class="kd">public</span> <span class="kt">void</span> <span class="nf">addPerRequestResource</span><span class="o">(</span><span class="n">Class</span><span class="o">&lt;?&gt;</span> <span class="n">clazz</span><span class="o">)</span> <span class="o">{</span>
-  <span class="n">deployment</span><span class="o">.</span><span class="na">getRegistry</span><span class="o">().</span><span class="na">addPerRequestResource</span><span class="o">(</span><span class="n">clazz</span><span class="o">);</span>
- <span class="o">}</span>
-
- <span class="nd">@AfterClass</span>
- <span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">destroy</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">Exception</span><span class="o">{</span>
-  <span class="k">if</span> <span class="o">(</span><span class="n">server</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span>
-   <span class="n">server</span><span class="o">.</span><span class="na">stop</span><span class="o">();</span>
-  <span class="o">}</span>
- <span class="o">}</span>
-</code></pre>
-</div>
-
-
 <h6>Write unit test by using http client</h6>
 
 <p>And now, comes our unit test class.</p>
-
-<div class="highlight"><pre><code class="java"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">UserServiceTest</span> <span class="kd">extends</span> <span class="n">BaseTest</span> <span class="o">{</span>
-
- <span class="nd">@Before</span>
- <span class="kd">public</span> <span class="kt">void</span> <span class="nf">setUp</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
-    <span class="k">this</span><span class="o">.</span><span class="na">addPerRequestResource</span><span class="o">(</span><span class="n">UserServiceImpl</span><span class="o">.</span><span class="na">class</span><span class="o">);</span>
- <span class="o">}</span>
-
- <span class="nd">@Test</span>
- <span class="kd">public</span> <span class="kt">void</span> <span class="nf">testGetUser</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
-  <span class="n">URL</span> <span class="n">url</span> <span class="o">=</span> <span class="k">new</span> <span class="n">URL</span><span class="o">(</span><span class="s">&quot;http://localhost:8081/user/100&quot;</span><span class="o">);</span>
-  <span class="n">HttpURLConnection</span> <span class="n">connection</span> <span class="o">=</span> <span class="o">(</span><span class="n">HttpURLConnection</span><span class="o">)</span><span class="n">url</span><span class="o">.</span><span class="na">openConnection</span><span class="o">();</span>
-  <span class="n">connection</span><span class="o">.</span><span class="na">setRequestMethod</span><span class="o">(</span><span class="s">&quot;GET&quot;</span><span class="o">);</span>
-
-     <span class="n">BufferedReader</span> <span class="n">reader</span> <span class="o">=</span> <span class="k">new</span> <span class="n">BufferedReader</span><span class="o">(</span><span class="k">new</span>
-               <span class="n">InputStreamReader</span><span class="o">(</span><span class="n">connection</span><span class="o">.</span><span class="na">getInputStream</span><span class="o">()));</span>
-     <span class="n">String</span> <span class="n">line</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="na">readLine</span><span class="o">();</span>
-        <span class="k">while</span> <span class="o">(</span><span class="n">line</span> <span class="o">!=</span> <span class="kc">null</span><span class="o">)</span>
-        <span class="o">{</span>
-         <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">line</span><span class="o">);</span>
-         <span class="n">line</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="na">readLine</span><span class="o">();</span>
-        <span class="o">}</span>
-
-  <span class="n">connection</span><span class="o">.</span><span class="na">disconnect</span><span class="o">();</span>
- <span class="o">}</span>
-
- <span class="nd">@Test</span>
- <span class="kd">public</span> <span class="kt">void</span> <span class="nf">testCreateUser</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
-  <span class="n">URL</span> <span class="n">url</span> <span class="o">=</span> <span class="k">new</span> <span class="n">URL</span><span class="o">(</span><span class="s">&quot;http://localhost:8081/user&quot;</span><span class="o">);</span>
-  <span class="n">HttpURLConnection</span> <span class="n">connection</span> <span class="o">=</span> <span class="o">(</span><span class="n">HttpURLConnection</span><span class="o">)</span><span class="n">url</span><span class="o">.</span><span class="na">openConnection</span><span class="o">();</span>
-  <span class="n">connection</span><span class="o">.</span><span class="na">setRequestMethod</span><span class="o">(</span><span class="s">&quot;POST&quot;</span><span class="o">);</span>
-  <span class="n">connection</span><span class="o">.</span><span class="na">setRequestProperty</span><span class="o">(</span><span class="s">&quot;Content-Type&quot;</span><span class="o">,</span> <span class="s">&quot;application/xml&quot;</span><span class="o">);</span>
-  <span class="n">connection</span><span class="o">.</span><span class="na">setDoOutput</span><span class="o">(</span><span class="kc">true</span><span class="o">);</span>
-  <span class="n">connection</span><span class="o">.</span><span class="na">setInstanceFollowRedirects</span><span class="o">(</span><span class="kc">false</span><span class="o">);</span>
-
-  <span class="n">StringBuffer</span> <span class="n">sbuffer</span> <span class="o">=</span> <span class="k">new</span> <span class="n">StringBuffer</span><span class="o">();</span>
-  <span class="n">sbuffer</span><span class="o">.</span><span class="na">append</span><span class="o">(</span><span class="s">&quot;&lt;user id=&quot;</span><span class="mi">0</span><span class="s">&quot;&gt;&quot;</span><span class="o">);</span>
-  <span class="n">sbuffer</span><span class="o">.</span><span class="na">append</span><span class="o">(</span><span class="s">&quot;   &lt;username&gt;Test User&lt;/username&gt;&quot;</span><span class="o">);</span>
-  <span class="n">sbuffer</span><span class="o">.</span><span class="na">append</span><span class="o">(</span><span class="s">&quot;   &lt;email&gt;test.user@test.com&lt;/email&gt;&quot;</span><span class="o">);</span>
-  <span class="n">sbuffer</span><span class="o">.</span><span class="na">append</span><span class="o">(</span><span class="s">&quot;&lt;/user&gt;&quot;</span><span class="o">);</span>
-
-  <span class="n">OutputStream</span> <span class="n">os</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="na">getOutputStream</span><span class="o">();</span>
-  <span class="n">os</span><span class="o">.</span><span class="na">write</span><span class="o">(</span><span class="n">sbuffer</span><span class="o">.</span><span class="na">toString</span><span class="o">().</span><span class="na">getBytes</span><span class="o">());</span>
-  <span class="n">os</span><span class="o">.</span><span class="na">flush</span><span class="o">();</span>
-
-     <span class="n">assertEquals</span><span class="o">(</span><span class="n">HttpURLConnection</span><span class="o">.</span><span class="na">HTTP_CREATED</span><span class="o">,</span> <span class="n">connection</span><span class="o">.</span><span class="na">getResponseCode</span><span class="o">());</span>
-  <span class="n">connection</span><span class="o">.</span><span class="na">disconnect</span><span class="o">();</span>
- <span class="o">}</span>
-
-<span class="o">}</span>
-</code></pre>
-</div>
-
 
 <p>You should be able to run test cases either in IDE or simply do it by running maven surefire plugin. You could obtain <a href="http://people.apache.org/~jeffyu/articles/artifacts/restful-blog.tar">the whole project as a tall bar from here</a>.</p>
 

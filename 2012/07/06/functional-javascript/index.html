@@ -73,43 +73,11 @@
 
 <p>Function在Javascript中也是对象,简单的理解,就是Function里面它也可以有一系列的 name -> value 组合.我之前很容易把Function跟Java中的Method联系起来,但是其实,这两个在这边是完全不同的. 先看下面的创建一个函数:</p>
 
-<div class="highlight"><pre><code class="javascript"><span class="kd">function</span> <span class="nx">add</span><span class="p">(</span><span class="nx">a</span><span class="p">,</span> <span class="nx">b</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">return</span> <span class="nx">a</span><span class="o">+</span><span class="nx">b</span><span class="p">;</span>
-<span class="p">}</span>
-</code></pre>
-</div>
-
-
 <p>我们可以把一个函数赋给一个变量,如下:</p>
-
-<div class="highlight"><pre><code class="javascript"><span class="kd">var</span> <span class="nx">add</span> <span class="o">=</span> <span class="kd">function</span> <span class="nx">add</span><span class="p">(</span><span class="nx">a</span><span class="p">,</span> <span class="nx">b</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">return</span> <span class="nx">a</span><span class="o">+</span><span class="nx">b</span><span class="p">;</span>
-<span class="p">};</span>
-</code></pre>
-</div>
-
 
 <p>又或者如下创建一个匿名函数然后赋给一个变量:</p>
 
-<div class="highlight"><pre><code class="javascript"><span class="kd">function</span> <span class="p">(</span><span class="nx">a</span><span class="p">,</span> <span class="nx">b</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">return</span> <span class="nx">a</span><span class="o">+</span><span class="nx">b</span><span class="p">;</span>
-<span class="p">}</span>
-</code></pre>
-</div>
-
-
 <p>因为Function是一个对象,所以我们可以在Function里面创建一个Function,比如:</p>
-
-<div class="highlight"><pre><code class="javascript"><span class="kd">var</span> <span class="nx">anotherMath</span> <span class="o">=</span> <span class="kd">function</span> <span class="nx">anotherMath</span><span class="p">(</span><span class="nx">a</span><span class="p">,</span> <span class="nx">b</span><span class="p">)</span> <span class="p">{</span>
-    <span class="kd">var</span> <span class="nx">sum</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
-        <span class="k">return</span> <span class="nx">a</span><span class="o">+</span><span class="nx">b</span><span class="p">;</span>
-    <span class="p">}</span>
-    <span class="k">return</span> <span class="nx">sum</span><span class="p">();</span>
-<span class="p">};</span>
-<span class="nx">anotherMath</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">);</span> <span class="c1">//结果是8.</span>
-</code></pre>
-</div>
-
 
 <p>作为一个对象,Function也可以被作为参数被传递,又或者是作为一个返回值被返回,我想这可能刚看上去觉得比较不可思议，特别是当你把Function和Method等同看待的话. 但是如果你知道他是一个对象的话,就很正常,因为我们经常可以是传入一个对象,或者是返回一个对象.在Functional Programming中,我们也把这种特性叫做: <a href="http://en.wikipedia.org/wiki/Higher-order_function">High Order Function</a>.</p>
 
@@ -117,35 +85,7 @@
 
 <p>先看一个把函数对象作为参数的例子.</p>
 
-<div class="highlight"><pre><code class="javascript"><span class="kd">var</span> <span class="nx">getBiggerValue</span> <span class="o">=</span> <span class="kd">function</span> <span class="nx">getBiggerValue</span><span class="p">(</span><span class="nx">a</span><span class="p">,</span> <span class="nx">b</span><span class="p">,</span> <span class="nx">compareValue</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">if</span> <span class="p">(</span><span class="nx">compareValue</span><span class="p">(</span><span class="nx">a</span><span class="p">,</span><span class="nx">b</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
-        <span class="k">return</span> <span class="nx">a</span><span class="p">;</span>
-    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
-        <span class="k">return</span> <span class="nx">b</span><span class="p">;</span>
-    <span class="p">}</span>
-<span class="p">};</span>
-
-<span class="nx">getBiggerValue</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">x</span><span class="p">,</span> <span class="nx">y</span><span class="p">){</span>
-    <span class="k">return</span> <span class="nx">x</span> <span class="o">-</span> <span class="nx">y</span><span class="p">;</span>  
-<span class="p">});</span>
-</code></pre>
-</div>
-
-
 <p>这里我们可以看到,我们在调用getBiggerValue的时候,传入一个匿名函数作为参数. 下面再来看一个从<a href="http://nathansjslessons.appspot.com/lesson?id=1040">What is a Closure</a>网站的一个例子.</p>
-
-<div class="highlight"><pre><code class="javascript"><span class="kd">var</span> <span class="nx">addOne</span> <span class="o">=</span> <span class="kd">function</span> <span class="nx">addOne</span><span class="p">(</span><span class="nx">x</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">return</span> <span class="nx">x</span><span class="o">+</span><span class="mi">1</span><span class="p">;</span>
-<span class="p">};</span>
-
-<span class="kd">var</span> <span class="nx">callTwice</span> <span class="o">=</span> <span class="kd">function</span> <span class="nx">callTwice</span><span class="p">(</span><span class="nx">f</span><span class="p">,</span> <span class="nx">x</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">return</span> <span class="nx">f</span><span class="p">(</span><span class="nx">f</span><span class="p">(</span><span class="nx">x</span><span class="p">));</span>
-<span class="p">};</span>
-
-<span class="nx">callTwice</span><span class="p">(</span><span class="nx">addOne</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span> <span class="c1">//结果是7.</span>
-</code></pre>
-</div>
-
 
 <p>在JavaScript中,我们大量应用这种方式来构建回调(callback)方法.</p>
 
@@ -153,30 +93,7 @@
 
 <p>接下来,我们来看个把函数对象作为返回值的例子.</p>
 
-<div class="highlight"><pre><code class="javascript"><span class="kd">var</span> <span class="nx">anotherMath</span> <span class="o">=</span> <span class="kd">function</span> <span class="nx">anotherMath</span><span class="p">(</span><span class="nx">a</span><span class="p">,</span> <span class="nx">b</span><span class="p">)</span> <span class="p">{</span>
-    <span class="kd">var</span> <span class="nx">sum</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
-        <span class="k">return</span> <span class="nx">a</span><span class="o">+</span><span class="nx">b</span><span class="p">;</span>
-    <span class="p">}</span>
-    <span class="k">return</span> <span class="nx">sum</span><span class="p">;</span>
-<span class="p">};</span>
-<span class="nx">anotherMath</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">)();</span> <span class="c1">//结果是8,注意,因为最后的括号不可缺少,因为返回的是函数,你需要去执行它才能获得最后的值.</span>
-</code></pre>
-</div>
-
-
 <p>再来看一个简单的例子:</p>
-
-<div class="highlight"><pre><code class="javascript"><span class="kd">var</span> <span class="nx">makeFunction</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
-    <span class="kd">var</span> <span class="nx">addOne</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">x</span><span class="p">)</span> <span class="p">{</span>
-        <span class="k">return</span> <span class="nx">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
-    <span class="p">};</span>
-    <span class="k">return</span> <span class="nx">addOne</span><span class="p">;</span> <span class="c1">// 返回一个函数</span>
-<span class="p">};</span>
-<span class="kd">var</span> <span class="nx">f</span> <span class="o">=</span> <span class="nx">makeFunction</span><span class="p">();</span><span class="c1">//返回的是一个函数.</span>
-<span class="kd">var</span> <span class="nx">y</span> <span class="o">=</span> <span class="nx">f</span><span class="p">(</span><span class="mi">3</span><span class="p">);</span> <span class="c1">//最后结果是4.</span>
-</code></pre>
-</div>
-
 
 <p>注意到我们第二个例子中,第一个函数不需要参数,返回的函数才需要参数.</p>
 
@@ -192,72 +109,23 @@
 
 <p>当一个函数被作为一个对象的属性时,这个函数的调用方式就叫做方法调用模式.</p>
 
-<div class="highlight"><pre><code class="javascript"><span class="kd">var</span> <span class="nx">theObject</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="nx">value</span><span class="o">:</span> <span class="mi">0</span><span class="p">,</span>
-    <span class="nx">increment</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">inc</span><span class="p">)</span> <span class="p">{</span>
-        <span class="k">this</span><span class="p">.</span><span class="nx">value</span> <span class="o">+=</span> <span class="nx">inc</span><span class="p">;</span>
-    <span class="p">}</span>    
-<span class="p">};</span>
-<span class="nx">theObject</span><span class="p">.</span><span class="nx">increment</span><span class="p">();</span>
-</code></pre>
-</div>
-
-
 <p>这里,我们定义一个对象叫做theObject,有个value的属性和increment方法.在运行这个increment函数时,我们是当做theObject的属性运行,这种情况属于方法调用模式,<em>this</em>的值就是当前这个对象,在这里就是theObject.</p>
 
 <h6>2. 函数调用模式 (The Function Invocation Pattern)</h6>
 
 <p>当一个函数并不是作为一个对象的属性时,被调用时我们称这种为函数调用模式.这个时候<em>this</em>的值是Global Object,可以看做成一个最外面的全局对象.</p>
 
-<div class="highlight"><pre><code class="javascript"><span class="kd">var</span> <span class="nx">sum</span> <span class="o">=</span> <span class="nx">add</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">);</span>
-</code></pre>
-</div>
-
-
 <h6>3. 构造器调用模式(The Constructor Invocation Pattern)</h6>
-
-<div class="highlight"><pre><code class="javascript"><span class="kd">var</span> <span class="nx">Quo</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">string</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">this</span><span class="p">.</span><span class="nx">status</span> <span class="o">=</span> <span class="nx">string</span><span class="p">;</span>
-<span class="p">};</span>
-<span class="kd">var</span> <span class="nx">myQuo</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Quo</span><span class="p">(</span><span class="s2">&quot;confused&quot;</span><span class="p">);</span>
-</code></pre>
-</div>
-
 
 <p>这种方式,用new来初始化一个函数的称为构造器调用模式.</p>
 
 <h6>4. 应用调用模式 (The Apply Invocation Pattern)</h6>
-
-<div class="highlight"><pre><code class="javascript"><span class="kd">var</span> <span class="nx">theArray</span> <span class="o">=</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">];</span>
-<span class="kd">var</span> <span class="nx">sum</span> <span class="o">=</span> <span class="nx">add</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="nx">theArray</span><span class="p">);</span>
-</code></pre>
-</div>
-
 
 <p>这里add函数是我们上面所定义的,apply方法有两个参数,第一个是赋值给<em>this</em>,第二个是参数数组.</p>
 
 <h5>闭包 (Closure)</h5>
 
 <p>在创建函数的时候,我们说过可以在函数里面创建内嵌函数.在内嵌函数中,我们可以访问到外围函数的变量，但是不能访问到外围函数的<em>this</em>和<em>arguments</em>.</p>
-
-<div class="highlight"><pre><code class="javascript"><span class="kd">var</span> <span class="nx">makeCounter</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
-    <span class="kd">var</span> <span class="nx">count</span><span class="p">,</span> <span class="nx">f</span><span class="p">;</span>
-    <span class="nx">count</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-    <span class="nx">f</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
-        <span class="nx">count</span> <span class="o">=</span> <span class="nx">count</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
-        <span class="k">return</span> <span class="nx">count</span><span class="p">;</span>
-    <span class="p">};</span>
-    <span class="k">return</span> <span class="nx">f</span><span class="p">;</span>
-<span class="p">};</span>
-
-<span class="kd">var</span> <span class="nx">counter</span> <span class="o">=</span> <span class="nx">makeCounter</span><span class="p">();</span>
-
-<span class="kd">var</span> <span class="nx">a</span> <span class="o">=</span> <span class="nx">counter</span><span class="p">();</span> <span class="c1">// gets 1</span>
-<span class="kd">var</span> <span class="nx">b</span> <span class="o">=</span> <span class="nx">counter</span><span class="p">();</span> <span class="c1">// gets 2</span>
-<span class="kd">var</span> <span class="nx">c</span> <span class="o">=</span> <span class="nx">counter</span><span class="p">();</span> <span class="c1">// gets 3</span>
-</code></pre>
-</div>
-
 
 <p>当我们创建一个counter的时候,它返回一个内嵌函数f,这个内嵌函数跟之前的内嵌函数不同的是,这个内嵌函数它可以操作外面函数的count属性.
 通常而言,当我们调用makeCounter()函数后返回,它的count属性随着function()函数生命周期就应该结束,但是因为内嵌函数f继续使用count,所以这个变量现在继续保存在f函数中,我们叫这样的函数叫闭包.
@@ -268,12 +136,6 @@
 <p>Curry Function说简单点,就是通过对一个函数进行调用curry方法,然后传入部分参数,返回的函数是对之前传入参数赋值完后的原函数.
 比方说,add函数有2个参数,我们可以先传1个参数,然后获得的返回函数只能再接受另外一个函数.千言万语不如一段代码清晰.</p>
 
-<div class="highlight"><pre><code class="javascript"><span class="kd">var</span> <span class="nx">add1</span> <span class="o">=</span> <span class="nx">add</span><span class="p">.</span><span class="nx">curry</span><span class="p">(</span><span class="mi">5</span><span class="p">);</span>
-<span class="kd">var</span> <span class="nx">sum</span> <span class="o">=</span> <span class="nx">add1</span><span class="p">(</span><span class="mi">3</span><span class="p">);</span> <span class="c1">//结果是8</span>
-</code></pre>
-</div>
-
-
 <p>Curry函数的内部实现其实就是用我们上面说讲的闭包.把之前通过curry方法赋的值存在闭包的变量中.</p>
 
 <h5>Continuation</h5>
@@ -281,72 +143,15 @@
 <p>我们也可以通过把函数作为参数传入,来达成Continuation,也就是,一个函数执行完后,直接去执行另外一个函数,这样一直下去,这样的函数没有返回值.
 比如以下的代码:</p>
 
-<div class="highlight"><pre><code class="javascript"><span class="c1">// regular</span>
-<span class="kd">var</span> <span class="nx">addOne</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">x</span><span class="p">)</span> <span class="p">{</span>
-    <span class="k">return</span> <span class="nx">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
-<span class="p">};</span>
-
-<span class="c1">// CPS</span>
-<span class="kd">var</span> <span class="nx">addOneCPS</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">x</span><span class="p">,</span> <span class="nx">ret</span><span class="p">)</span> <span class="p">{</span>
-    <span class="nx">ret</span><span class="p">(</span><span class="nx">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">);</span>
-<span class="p">};</span> <span class="c1">//这里我们传入一个ret函数,所以当我们调用addOneCPS时候,它就会接着调用ret函数,构成一种持续执行的效果.</span>
-</code></pre>
-</div>
-
-
 <h5>模块化 (Module)</h5>
 
 <p>在JavaScript中, 有个众所周知的问题,那就是缺少名字空间.比如说我们外面定义的变量,或者说我们定义的函数,它都是默认给Global Object中的变量和函数,这样如果每个javascript都这样的话,很容易重名.
 那么解决这个问题的有效问题就是模块化利用我们上面所讲的采用函数,闭包方式来进行模块封装.</p>
 
-<div class="highlight"><pre><code class="javascript"><span class="kd">var</span> <span class="nx">serial_maker</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(){</span>
-    <span class="kd">var</span> <span class="nx">prefix</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">;</span>
-    <span class="kd">var</span> <span class="nx">seq</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-    <span class="k">return</span> <span class="p">{</span>
-        <span class="nx">set_prefix</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">p</span><span class="p">){</span>
-            <span class="nx">prefix</span> <span class="o">=</span> <span class="nx">p</span><span class="p">;</span>
-        <span class="p">},</span>
-        <span class="nx">set_seq</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">s</span><span class="p">)</span> <span class="p">{</span>
-            <span class="nx">seq</span> <span class="o">=</span> <span class="nx">s</span><span class="p">;</span>
-        <span class="p">},</span>
-        <span class="nx">gensym</span><span class="o">:</span> <span class="kd">function</span><span class="p">(){</span>
-            <span class="kd">var</span> <span class="nx">result</span> <span class="o">=</span> <span class="nx">prefix</span> <span class="o">+</span> <span class="nx">seq</span><span class="p">;</span>
-            <span class="nx">seq</span> <span class="o">+=</span> <span class="mi">1</span><span class="p">;</span>
-            <span class="k">return</span> <span class="nx">result</span><span class="p">;</span>
-        <span class="p">}</span>
-    <span class="p">};</span>   
-<span class="p">};</span>
-
-<span class="kd">var</span> <span class="nx">seqer</span> <span class="o">=</span> <span class="nx">serial_maker</span><span class="p">();</span>
-</code></pre>
-</div>
-
-
 <p>上面代码中,我们可以看出我们对prefix和seq变量进行了封装,它只能通过对外公开的两个方法set_prefix和set_seq对其操作.
 注:我们最外面匿名函数返回的是一个对象,对象里面包括了三个属性,set_prefix,set_seq和gensym,这三个属性分别对应三个函数.</p>
 
 <p>如果说在上面代码中,我们或许会给你一种serial_maker函数类似类(class)的感觉,我们可以简化一下,直接通过调用函数返回一个对象.</p>
-
-<div class="highlight"><pre><code class="javascript"><span class="kd">var</span> <span class="nx">seqer</span> <span class="o">=</span> <span class="p">(</span><span class="kd">function</span><span class="p">(){</span>
-    <span class="kd">var</span> <span class="nx">prefix</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">;</span>
-    <span class="kd">var</span> <span class="nx">seq</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-    <span class="k">return</span> <span class="p">{</span>
-        <span class="nx">set_prefix</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">p</span><span class="p">){</span>
-            <span class="nx">prefix</span> <span class="o">=</span> <span class="nx">p</span><span class="p">;</span>
-        <span class="p">},</span>
-        <span class="nx">set_seq</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">s</span><span class="p">)</span> <span class="p">{</span>
-            <span class="nx">seq</span> <span class="o">=</span> <span class="nx">s</span><span class="p">;</span>
-        <span class="p">},</span>
-        <span class="nx">gensym</span><span class="o">:</span> <span class="kd">function</span><span class="p">(){</span>
-            <span class="kd">var</span> <span class="nx">result</span> <span class="o">=</span> <span class="nx">prefix</span> <span class="o">+</span> <span class="nx">seq</span><span class="p">;</span>
-            <span class="nx">seq</span> <span class="o">+=</span> <span class="mi">1</span><span class="p">;</span>
-            <span class="k">return</span> <span class="nx">result</span><span class="p">;</span>
-        <span class="p">}</span>
-    <span class="p">};</span>   
-<span class="p">}());</span>
-</code></pre>
-</div>
-
 
 <p>注意到最后一行的括弧,这就表示马上调用我们定义的匿名函数来返回一个对象,把这个对象赋值给seqer.</p>
 

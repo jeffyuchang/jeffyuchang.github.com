@@ -67,15 +67,6 @@
 
 <p>This is the most common and recommended way to do. Below is the <a href="http://www.jboss.org/riftsaw">JBoss RiftSaw</a> Clustering service that uses the 'HAPartitonService' from JBoss AS Cluster.</p>
 
-<div class="highlight"><pre><code class="xml">   <span class="nt">&lt;bean</span> <span class="na">name=</span><span class="s">&quot;RiftSawClusteringService&quot;</span> <span class="na">class=</span><span class="s">&quot;org.jboss.soa.bpel.clustering.JBossClusteringService&quot;</span><span class="nt">&gt;</span>
-     <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&quot;haPartition&quot;</span><span class="nt">&gt;&lt;inject</span> <span class="na">bean=</span><span class="s">&quot;HAPartition&quot;</span> <span class="nt">/&gt;&lt;/property&gt;</span>
-     <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&quot;bpelEngineName&quot;</span><span class="nt">&gt;</span>bpel/Engine<span class="nt">&lt;/property&gt;</span>
-     <span class="nt">&lt;depends&gt;</span>BPELEngine<span class="nt">&lt;/depends&gt;</span>
-   <span class="nt">&lt;/bean&gt;</span>
-</code></pre>
-</div>
-
-
 <p>See Ales <a href="http://java.dzone.com/articles/a-look-inside-jboss-microconta-0">Advanced Dependency Injections article</a>  for more about MC's xml syntax.</p>
 
 <h4>2. Using JBoss MC's service programmatically</h4>
@@ -84,97 +75,20 @@
 
 <p>1) org.jboss.kernel.Kernel, this is the service that has the KernelController and ControllerContext that we need for getting the service. so firstly, you can define a service in -jboss-bean.xml that injects the Kernel service, like the following:</p>
 
-<div class="highlight"><pre><code class="xml"><span class="c">&lt;!--    Locate the single instance of the kernel    --&gt;</span>
-<span class="nt">&lt;bean</span> <span class="na">name=</span><span class="s">&quot;org.jboss.soa.bpel.runtime.util:service=KernelLocator&quot;</span>
-     <span class="na">class=</span><span class="s">&quot;org.jboss.soa.bpel.runtime.integration.KernelLocator&quot;</span><span class="nt">&gt;</span>
-    <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&quot;kernel&quot;</span><span class="nt">&gt;</span>
-      <span class="nt">&lt;inject</span> <span class="na">bean=</span><span class="s">&quot;jboss.kernel:service=Kernel&quot;</span> <span class="nt">/&gt;</span>
-    <span class="nt">&lt;/property&gt;</span>
-<span class="nt">&lt;/bean&gt;</span>
-</code></pre>
-</div>
-
-
 <p>We've defined above class as following:</p>
-
-<div class="highlight"><pre><code class="java"><span class="kn">package</span> <span class="n">org</span><span class="o">.</span><span class="na">jboss</span><span class="o">.</span><span class="na">soa</span><span class="o">.</span><span class="na">bpel</span><span class="o">.</span><span class="na">runtime</span><span class="o">.</span><span class="na">integration</span><span class="o">;</span>
-<span class="kd">public</span> <span class="kd">class</span> <span class="nc">KernelLocator</span><span class="o">{</span>
-  <span class="kd">private</span> <span class="kd">static</span> <span class="n">Kernel</span> <span class="n">kernel</span><span class="o">;</span>
-  <span class="kd">public</span> <span class="kd">static</span> <span class="n">Kernel</span> <span class="nf">getKernel</span><span class="o">()</span>  <span class="o">{</span>    <span class="k">return</span> <span class="n">KernelLocator</span><span class="o">.</span><span class="na">kernel</span><span class="o">;</span>  <span class="o">}</span>
-  <span class="kd">public</span> <span class="kt">void</span> <span class="nf">setKernel</span><span class="o">(</span><span class="n">Kernel</span> <span class="n">kernel</span><span class="o">)</span>  <span class="o">{</span>    <span class="n">KernelLocator</span><span class="o">.</span><span class="na">kernel</span> <span class="o">=</span> <span class="n">kernel</span><span class="o">;</span>  <span class="o">}</span>
-<span class="o">}</span>
-</code></pre>
-</div>
-
 
 <p>2) Use the KernelController and ControllerContext to get the service that we defined in -jboss-bean.xml.
 Below is the code to actually obtain the started service out of JBoss AS.</p>
-
-<div class="highlight"><pre><code class="java"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">KernelAwareSPIFactory</span><span class="o">{</span>
-   <span class="nd">@SuppressWarnings</span><span class="o">(</span><span class="s">&quot;unchecked&quot;</span><span class="o">)</span>
-   <span class="kd">public</span> <span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="n">T</span> <span class="n">getKernelProvidedSPI</span><span class="o">(</span><span class="n">String</span> <span class="n">beanName</span><span class="o">,</span> <span class="n">Class</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span> <span class="n">spiArtifact</span><span class="o">)</span>   <span class="o">{</span>
-      <span class="n">KernelController</span> <span class="n">controller</span> <span class="o">=</span> <span class="n">KernelLocator</span><span class="o">.</span><span class="na">getKernel</span><span class="o">().</span><span class="na">getController</span><span class="o">();</span>
-      <span class="n">ControllerContext</span> <span class="n">ctx</span> <span class="o">=</span> <span class="n">controller</span><span class="o">.</span><span class="na">getInstalledContext</span><span class="o">(</span><span class="n">beanName</span><span class="o">);</span>
-      <span class="k">return</span> <span class="o">(</span><span class="n">T</span><span class="o">)</span><span class="n">ctx</span><span class="o">.</span><span class="na">getTarget</span><span class="o">();</span>   <span class="o">}</span>
-<span class="o">}</span>
-</code></pre>
-</div>
-
 
 <p>In the end, let's take an example from <a href="http://jboss.org/riftsaw">RiftSaw code base</a> to show how it was used.</p>
 
 <p>In RiftSaw, we've defined a ServerConfig interface.</p>
 
-<div class="highlight"><pre><code class="java"><span class="kd">public</span> <span class="kd">interface</span> <span class="nc">ServerConfig</span><span class="o">{</span>
-  <span class="cm">/** The default bean name */</span>
-  <span class="n">String</span> <span class="n">BEAN_NAME</span> <span class="o">=</span> <span class="s">&quot;org.jboss.soa.bpel.runtime.util:service=ServerConfig&quot;</span><span class="o">;</span>
-
-  <span class="n">String</span> <span class="nf">getImplementationTitle</span><span class="o">();</span>
-
-  <span class="n">String</span> <span class="nf">getImplementationVersion</span><span class="o">();</span>
-
-  <span class="n">File</span> <span class="nf">getServerTempDir</span><span class="o">();</span>
-
-  <span class="n">File</span> <span class="nf">getServerDataDir</span><span class="o">();</span>
-
-  <span class="n">String</span> <span class="nf">getWebServiceHost</span><span class="o">();</span>
-
-  <span class="kt">int</span> <span class="nf">getWebServicePort</span><span class="o">();</span>
-
-  <span class="o">.....</span>
-<span class="o">}</span>
-</code></pre>
-</div>
-
-
 <p>And then we've had the ServerConfigImpl class.</p>
-
-<div class="highlight"><pre><code class="java"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">ServerConfigImpl</span> <span class="kd">implements</span> <span class="n">ServerConfig</span><span class="o">{</span>  <span class="o">....}</span>
-</code></pre>
-</div>
-
 
 <p>With this implementation, we've defined the ServerConfig service in the -jboss-bean.xml as following.</p>
 
-<div class="highlight"><pre><code class="xml"><span class="c">&lt;!--       ServerConfig    --&gt;</span>
- <span class="nt">&lt;bean</span> <span class="na">name=</span><span class="s">&quot;org.jboss.soa.bpel.runtime.util:service=ServerConfig&quot;</span>
-        <span class="na">class=</span><span class="s">&quot;org.jboss.soa.bpel.runtime.integration.ServerConfigImpl&quot;</span><span class="nt">&gt;</span>
-    <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&quot;mbeanServer&quot;</span><span class="nt">&gt;</span>
-     <span class="nt">&lt;inject</span> <span class="na">bean=</span><span class="s">&quot;JMXKernel&quot;</span> <span class="na">property=</span><span class="s">&quot;mbeanServer&quot;</span><span class="nt">/&gt;</span>
-    <span class="nt">&lt;/property&gt;</span>
-    <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&quot;webServiceHost&quot;</span><span class="nt">&gt;</span>${jboss.bind.address}<span class="nt">&lt;/property&gt;</span>
-  <span class="nt">&lt;/bean&gt;</span>
-</code></pre>
-</div>
-
-
 <p>Now, finally let's see how we get this ServerConfig Service in our code.</p>
-
-<div class="highlight"><pre><code class="java"><span class="n">ServerConfig</span> <span class="o">=</span> <span class="k">new</span> <span class="n">KernelAwareSPIFactory</span><span class="o">()</span>
-               <span class="o">.</span><span class="na">getKernelProvidedSPI</span><span class="o">(</span><span class="s">&quot;org.jboss.soa.bpel.runtime.util:service=ServerConfig&quot;</span><span class="o">,</span> <span class="n">ServerConfig</span><span class="o">.</span><span class="na">class</span>
-</code></pre>
-</div>
-
 
 <p>And then, here you go, you've got the ServerConfig service that is in the JBoss AS.</p>
 
