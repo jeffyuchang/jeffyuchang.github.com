@@ -4,13 +4,26 @@
  <title>Jeff Yu @ IT</title>
  <link href="http://jeffyuchang.github.com/atom.xml" rel="self"/>
  <link href="http://jeffyuchang.github.com"/>
- <updated>2012-11-30T02:57:04+11:00</updated>
+ <updated>2012-11-30T20:18:52+11:00</updated>
  <id>http://jeffyuchang.github.com</id>
  <author>
    <name>Jeff Yu</name>
    <email>blah@email.test</email>
  </author>
 
+ 
+ <entry>
+   <title>Building your Own Service In SwitchYard</title>
+   <link href="http://jeffyuchang.github.com/2012/11/30/intro-to-switchyard"/>
+   <updated>2012-11-30T00:00:00+11:00</updated>
+   <id>hhttp://jeffyuchang.github.com/2012/11/30/intro-to-switchyard</id>
+   <content type="html">&lt;p&gt;Just finished the &lt;a href=&quot;http://jeff.familyyu.net/presentations/intro-to-switchyard.html&quot;&gt;&quot;Building Your Own Service In SwitchYard&quot; presentation&lt;/a&gt; in &lt;a href=&quot;http://www.jboss.org/events/JUDCon/2012/china&quot;&gt;JUDCon 2012 China&lt;/a&gt;, hopefully it helps some users/developers using the SWitchYard, or even better, which motivates some people to take part in the SwitchYard comunity, be asking questions, helping the forum question or even better to contribute ideas/codes to the SwitchYard.&lt;/p&gt;
+
+&lt;p&gt;I will (should) post another one or two blog entries on Introduction to SwitchYard based on the presentation later, at least in one week later, as I am taking vacation next week.&lt;/p&gt;
+
+&lt;p&gt;Anyway, hope you like it, if you have any comments on the presentation, please leave it in the comments section here. If you got SwitchYard related questions, best to direct them to &lt;a href=&quot;https://community.jboss.org/en/switchyard?view=discussions&quot;&gt;its forum&lt;/a&gt; ， because the SwitchYard team is on the forum, the response is much quicker there.&lt;/p&gt;
+</content>
+ </entry>
  
  <entry>
    <title>Back To Basics -  Review notes on Robot Software Architecture Course</title>
