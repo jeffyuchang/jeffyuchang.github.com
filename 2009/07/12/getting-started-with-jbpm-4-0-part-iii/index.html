@@ -71,12 +71,77 @@
 
 <p>below is the code snippet from the build.xml.</p>
 
+<div class="highlight"><pre><code class="xml"><span class="nt">&lt;target</span> <span class="na">name=</span><span class="s">&quot;jar&quot;</span> <span class="na">depends=</span><span class="s">&quot;init&quot;</span><span class="nt">&gt;</span>
+<span class="nt">&lt;mkdir</span> <span class="na">dir=</span><span class="s">&quot;${basedir}/target/classes&quot;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;javac</span> <span class="na">srcdir=</span><span class="s">&quot;${basedir}/src/main/java&quot;</span>
+<span class="na">destdir=</span><span class="s">&quot;${basedir}/target/classes&quot;</span>
+<span class="na">classpathref=</span><span class="s">&quot;classpath.lib&quot;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;jar</span> <span class="na">destfile=</span><span class="s">&quot;${basedir}/target/helloworld.jar&quot;</span> <span class="nt">&gt;</span>
+<span class="nt">&lt;fileset</span> <span class="na">dir=</span><span class="s">&quot;${basedir}/target/classes&quot;</span><span class="nt">&gt;</span>
+<span class="nt">&lt;include</span> <span class="na">name=</span><span class="s">&quot;**/*.class&quot;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/fileset&gt;</span>
+<span class="nt">&lt;/jar&gt;</span>
+<span class="nt">&lt;/target&gt;</span>
+
+
+<span class="nt">&lt;target</span> <span class="na">name=</span><span class="s">&quot;bar&quot;</span> <span class="na">depends=</span><span class="s">&quot;init&quot;</span><span class="nt">&gt;</span>
+<span class="nt">&lt;jar</span> <span class="na">destfile=</span><span class="s">&quot;${basedir}/target/helloworld.bar&quot;</span><span class="nt">&gt;</span>
+<span class="nt">&lt;fileset</span> <span class="na">dir=</span><span class="s">&quot;${basedir}/src/main/resources&quot;</span><span class="nt">&gt;</span>
+<span class="nt">&lt;include</span> <span class="na">name=</span><span class="s">&quot;*.jpdl.xml&quot;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/fileset&gt;</span>
+<span class="nt">&lt;/jar&gt;</span>
+<span class="nt">&lt;/target&gt;</span>
+</code></pre></div>
+
+
 <p>we will look into both two deployment ways, one is using ant task, the other is using jBPM deployer, the underlie is the same, it is using the RepositoryService to do the deployment work.</p>
 
 <ol>
-<li><p>using jBPM deployer.</p></li>
-<li><p>Use the jBPM deployer ANT task.</p></li>
+<li>using jBPM deployer.</li>
 </ol>
+
+
+<div class="highlight"><pre><code class="xml"><span class="nt">&lt;target</span> <span class="na">name=</span><span class="s">&quot;deploy&quot;</span> <span class="na">description=</span><span class="s">&quot;deploys the business archives into jboss&quot;</span>
+    <span class="na">depends=</span><span class="s">&quot; jar,bar&quot;</span><span class="nt">&gt;</span>
+<span class="nt">&lt;mkdir</span> <span class="na">dir=</span><span class="s">&quot;${jboss.server.config.dir}/deploy/jbpm/userlibs&quot;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;copy</span> <span class="na">file=</span><span class="s">&quot;${basedir}/target/helloworld.bar&quot;</span>
+<span class="na">todir=</span><span class="s">&quot;${jboss.server.config.dir}/deploy/jbpm/userlibs&quot;</span>
+<span class="na">overwrite=</span><span class="s">&quot;true&quot;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;copy</span> <span class="na">file=</span><span class="s">&quot;${basedir}/target/helloworld.jar&quot;</span>
+<span class="na">todir=</span><span class="s">&quot;${jboss.server.config.dir}/deploy/jbpm/userlibs&quot;</span>
+<span class="na">overwrite=</span><span class="s">&quot;true&quot;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/target&gt;</span>
+</code></pre></div>
+
+
+<ol>
+<li>Use the jBPM deployer ANT task.</li>
+</ol>
+
+
+<div class="highlight"><pre><code class="xml"><span class="nt">&lt;target</span> <span class="na">name=</span><span class="s">&quot;jbpm.deploy&quot;</span>
+<span class="na">description=</span><span class="s">&quot;deploys the business archives&quot;</span>
+<span class="na">depends=</span><span class="s">&quot; jar, bar&quot;</span><span class="nt">&gt;</span>
+<span class="nt">&lt;copy</span> <span class="na">file=</span><span class="s">&quot;${jbpm.home}/db/hibernate.cfg/${database}.hibernate.cfg.xml&quot;</span>
+<span class="na">tofile=</span><span class="s">&quot;${basedir}/target/classes/jbpm.hibernate.cfg.xml&quot;</span>
+<span class="na">overwrite=</span><span class="s">&quot;true&quot;</span><span class="nt">&gt;</span>
+<span class="nt">&lt;filterset</span> <span class="na">filtersfile=</span><span class="s">&quot;${jbpm.home}/db/jdbc/${database}.properties&quot;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/copy&gt;</span>
+<span class="nt">&lt;copy</span> <span class="na">file=</span><span class="s">&quot;${basedir}/src/test/resources/jbpm.cfg.xml&quot;</span>
+   <span class="na">tofile=</span><span class="s">&quot;${basedir}/target/classes/jbpm.cfg.xml&quot;</span>
+<span class="nt">/&gt;</span>
+<span class="nt">&lt;taskdef</span> <span class="na">name=</span><span class="s">&quot;jbpm-deploy&quot;</span>
+  <span class="na">classname=</span><span class="s">&quot;org.jbpm.pvm.internal.ant.JbpmDeployTask&quot;</span>
+<span class="na">classpathref=</span><span class="s">&quot;classpath.lib&quot;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;jbpm-deploy</span> <span class="na">file=</span><span class="s">&quot;${basedir}/target/helloworld.bar&quot;</span> <span class="nt">/&gt;</span>
+
+
+<span class="nt">&lt;mkdir</span> <span class="na">dir=</span><span class="s">&quot;${jboss.server.config.dir}/deploy/jbpm/userlibs&quot;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;copy</span> <span class="na">file=</span><span class="s">&quot;${basedir}/target/helloworld.jar&quot;</span>
+<span class="na">todir=</span><span class="s">&quot;${jboss.server.config.dir}/deploy/jbpm/userlibs&quot;</span>
+<span class="na">overwrite=</span><span class="s">&quot;true&quot;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/target&gt;</span>
+</code></pre></div>
 
 
 <p><em>Note</em>: The jBPM server needs to be up and running, and then you deploy the process archive into server through either way.</p>
@@ -102,6 +167,12 @@
 <p><img src="../../../../images/console-start-process-detail.png" alt="console process start detail" /></p>
 
 <p>Also, look on the server's console, you would notice that following lines:</p>
+
+<div class="highlight"><pre><code class="xml">17:37:44,566 INFO  [STDOUT] --------------------
+17:37:44,567 INFO  [STDOUT] Made a request.....
+17:37:44,567 INFO  [STDOUT] ---------------------
+</code></pre></div>
+
 
 <p>So, it means, the started process instance already gone through the java node, and right now is on the 'review' activity node. Remembered that we assigned this task to 'alex' in the process definition, and we login the console by using alex, so we should be able to see this task in the task tab from left panel.</p>
 

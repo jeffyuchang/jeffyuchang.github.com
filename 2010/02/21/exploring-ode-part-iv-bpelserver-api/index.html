@@ -63,6 +63,28 @@
 				<div class="entry-content">				
 					<p>If you look at the ODE source code, the BpelServer API is a very important one. In this entry, we will look at the class that how we use the BpelServer, for the ODE, lets look at the <a href="http://svn.apache.org/repos/asf/ode/trunk/axis2/src/main/java/org/apache/ode/axis2/ODEServer.java">ODEServer</a> source code.</p>
 
+<div class="highlight"><pre><code class="java"><span class="n">__log</span><span class="o">.</span><span class="na">debug</span><span class="o">(</span><span class="s">&quot;Initializing transaction manager&quot;</span><span class="o">);</span>
+<span class="n">initTxMgr</span><span class="o">();</span>
+<span class="n">__log</span><span class="o">.</span><span class="na">debug</span><span class="o">(</span><span class="s">&quot;Creating data source.&quot;</span><span class="o">);</span>
+<span class="n">initDataSource</span><span class="o">();</span>
+<span class="n">__log</span><span class="o">.</span><span class="na">debug</span><span class="o">(</span><span class="s">&quot;Starting DAO.&quot;</span><span class="o">);</span>
+<span class="n">initDAO</span><span class="o">();</span>
+<span class="n">EndpointReferenceContextImpl</span> <span class="n">eprContext</span> <span class="o">=</span> <span class="k">new</span> <span class="n">EndpointReferenceContextImpl</span><span class="o">(</span><span class="k">this</span><span class="o">);</span>
+<span class="n">__log</span><span class="o">.</span><span class="na">debug</span><span class="o">(</span><span class="s">&quot;Initializing BPEL process store.&quot;</span><span class="o">);</span>
+<span class="n">initProcessStore</span><span class="o">(</span><span class="n">eprContext</span><span class="o">);</span>
+<span class="n">__log</span><span class="o">.</span><span class="na">debug</span><span class="o">(</span><span class="s">&quot;Initializing BPEL server.&quot;</span><span class="o">);</span>
+<span class="n">initBpelServer</span><span class="o">(</span><span class="n">eprContext</span><span class="o">);</span>
+ <span class="n">__log</span><span class="o">.</span><span class="na">debug</span><span class="o">(</span><span class="s">&quot;Initializing HTTP connection manager&quot;</span><span class="o">);</span>
+ <span class="n">initHttpConnectionManager</span><span class="o">();</span>
+
+<span class="c1">// Register BPEL event listeners configured in axis2.properties file.</span>
+<span class="n">registerEventListeners</span><span class="o">();</span>
+<span class="n">registerMexInterceptors</span><span class="o">();</span>
+<span class="n">registerContextInterceptors</span><span class="o">();</span> 
+<span class="o">...</span>
+</code></pre></div>
+
+
 <p>As above code shown:</p>
 
 <ul>

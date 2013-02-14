@@ -79,7 +79,38 @@
 
 <p>In this process definition, we are using a java node to be the 'request' node, its java code as following:</p>
 
+<div class="highlight"><pre><code class="java"><span class="kn">package</span> <span class="n">org</span><span class="o">.</span><span class="na">jbpm</span><span class="o">.</span><span class="na">helloworld</span><span class="o">;</span>
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">Println</span> <span class="o">{</span>
+
+<span class="kd">public</span> <span class="kt">void</span> <span class="nf">request</span><span class="o">()</span> <span class="o">{</span>
+    <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;--------------------&quot;</span><span class="o">);</span>
+    <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;Made a request.....&quot;</span><span class="o">);</span>
+    <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">&quot;---------------------&quot;</span><span class="o">);</span>
+<span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div>
+
+
 <p>The process definition xml is as following:</p>
+
+<div class="highlight"><pre><code class="xml"><span class="nt">&lt;process</span> <span class="na">name=</span><span class="s">&quot;helloworld&quot;</span> <span class="na">xmlns=</span><span class="s">&quot;http://jbpm.org/4.0/jpdl&quot;</span><span class="nt">&gt;</span>
+<span class="nt">&lt;start</span>  <span class="na">name=</span><span class="s">&quot;start&quot;</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;transition</span>  <span class="na">name=</span><span class="s">&quot;to request&quot;</span> <span class="na">to=</span><span class="s">&quot;request&quot;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/start&gt;</span>
+<span class="nt">&lt;end</span>  <span class="na">name=</span><span class="s">&quot;end&quot;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;java</span> <span class="na">class=</span><span class="s">&quot;org.jbpm.helloworld.Println&quot;</span>  <span class="na">method=</span><span class="s">&quot;request&quot;</span> <span class="na">name=</span><span class="s">&quot;request&quot;</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;transition</span>  <span class="na">name=</span><span class="s">&quot;to review&quot;</span> <span class="na">to=</span><span class="s">&quot;review&quot;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/java&gt;</span>
+<span class="nt">&lt;task</span> <span class="na">assignee=</span><span class="s">&quot;alex&quot;</span>  <span class="na">name=</span><span class="s">&quot;review&quot;</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;transition</span>  <span class="na">name=</span><span class="s">&quot;approved&quot;</span> <span class="na">to=</span><span class="s">&quot;audit&quot;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/task&gt;</span>
+<span class="nt">&lt;state</span>  <span class="na">name=</span><span class="s">&quot;audit&quot;</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;transition</span>  <span class="na">name=</span><span class="s">&quot;to end&quot;</span> <span class="na">to=</span><span class="s">&quot;end&quot;</span><span class="nt">/&gt;</span>
+<span class="nt">&lt;/state&gt;</span>
+<span class="nt">&lt;/process&gt;</span>
+</code></pre></div>
+
 
 <p>The xml itself is very easy to understand, you might notice that 'g' attribute in your process definition file, that is only used by the Eclipse GUI.</p>
 
@@ -95,11 +126,78 @@ Because the jbpm.jar doesn't include the jbpm.hibernte.cfg.xml and jbpm.cfg.xml,
 <p>we put these two files into the src/test/resource folder.
 the jbpm.hibernate.cfg.xml would be like as following:</p>
 
+<div class="highlight"><pre><code class="xml"><span class="nt">&lt;hibernate-configuration&gt;</span>
+ <span class="nt">&lt;session-factory&gt;</span>
+    <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&quot;hibernate.dialect&quot;</span><span class="nt">&gt;</span>org.hibernate.dialect.HSQLDialect<span class="nt">&lt;/property&gt;</span>
+    <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&quot;hibernate.connection.driver_class&quot;</span><span class="nt">&gt;</span>org.hsqldb.jdbcDriver<span class="nt">&lt;/property&gt;</span>
+    <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&quot;hibernate.connection.url&quot;</span><span class="nt">&gt;</span>jdbc:hsqldb:mem:.<span class="nt">&lt;/property&gt;</span>
+    <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&quot;hibernate.connection.username&quot;</span><span class="nt">&gt;</span>sa<span class="nt">&lt;/property&gt;</span>
+    <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&quot;hibernate.connection.password&quot;</span><span class="nt">&gt;&lt;/property&gt;</span>
+    <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&quot;hibernate.hbm2ddl.auto&quot;</span><span class="nt">&gt;</span>create-drop<span class="nt">&lt;/property&gt;</span>
+    <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&quot;hibernate.format_sql&quot;</span><span class="nt">&gt;</span>true<span class="nt">&lt;/property&gt;</span>
+
+    <span class="nt">&lt;mapping</span> <span class="na">resource=</span><span class="s">&quot;jbpm.repository.hbm.xml&quot;</span> <span class="nt">/&gt;</span>
+    <span class="nt">&lt;mapping</span> <span class="na">resource=</span><span class="s">&quot;jbpm.execution.hbm.xml&quot;</span> <span class="nt">/&gt;</span>
+    <span class="nt">&lt;mapping</span> <span class="na">resource=</span><span class="s">&quot;jbpm.history.hbm.xml&quot;</span> <span class="nt">/&gt;</span>
+    <span class="nt">&lt;mapping</span> <span class="na">resource=</span><span class="s">&quot;jbpm.task.hbm.xml&quot;</span> <span class="nt">/&gt;</span>
+    <span class="nt">&lt;mapping</span> <span class="na">resource=</span><span class="s">&quot;jbpm.identity.hbm.xml&quot;</span> <span class="nt">/&gt;</span>
+
+ <span class="nt">&lt;/session-factory&gt;</span>
+<span class="nt">&lt;/hibernate-configuration&gt;</span>
+</code></pre></div>
+
+
 <p>and here it is the jbpm.cfg.xml:</p>
+
+<div class="highlight"><pre><code class="xml"><span class="nt">&lt;jbpm-configuration&gt;</span>
+ <span class="nt">&lt;import</span> <span class="na">resource=</span><span class="s">&quot;jbpm.default.cfg.xml&quot;</span> <span class="nt">/&gt;</span>
+ <span class="nt">&lt;import</span> <span class="na">resource=</span><span class="s">&quot;jbpm.tx.hibernate.cfg.xml&quot;</span> <span class="nt">/&gt;</span>
+ <span class="nt">&lt;import</span> <span class="na">resource=</span><span class="s">&quot;jbpm.jpdl.cfg.xml&quot;</span> <span class="nt">/&gt;</span>
+ <span class="nt">&lt;import</span> <span class="na">resource=</span><span class="s">&quot;jbpm.identity.cfg.xml&quot;</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/jbpm-configuration&gt;</span>
+</code></pre></div>
+
 
 <h5>Write the test case, which extends the JbpmTestCase</h5>
 
 <p>Now, we are ready to write the process unit test.</p>
+
+<div class="highlight"><pre><code class="java"><span class="kd">public</span> <span class="kd">class</span> <span class="nc">ProcessTest</span> <span class="kd">extends</span> <span class="n">JbpmTestCase</span> <span class="o">{</span>
+<span class="n">String</span> <span class="n">deploymentId</span><span class="o">;</span>
+
+
+<span class="kd">public</span> <span class="kt">void</span> <span class="nf">setUp</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+ <span class="kd">super</span><span class="o">.</span><span class="na">setUp</span><span class="o">();</span>
+ <span class="n">deploymentId</span> <span class="o">=</span> <span class="n">repositoryService</span><span class="o">.</span><span class="na">createDeployment</span><span class="o">()</span>
+     <span class="o">.</span><span class="na">addResourceFromClasspath</span><span class="o">(</span><span class="s">&quot;helloworld.jpdl.xml&quot;</span><span class="o">)</span>
+     <span class="o">.</span><span class="na">deploy</span><span class="o">();</span>
+<span class="o">}</span>
+
+<span class="kd">public</span> <span class="kt">void</span> <span class="nf">testProcess</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+ <span class="n">ProcessInstance</span> <span class="n">instance</span> <span class="o">=</span> <span class="n">executionService</span><span class="o">.</span><span class="na">startProcessInstanceByKey</span><span class="o">(</span><span class="s">&quot;helloworld&quot;</span><span class="o">);</span>
+ <span class="n">String</span> <span class="n">pid</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="na">getId</span><span class="o">();</span>
+
+ <span class="n">assertTrue</span><span class="o">(</span><span class="n">instance</span><span class="o">.</span><span class="na">isActive</span><span class="o">(</span><span class="s">&quot;review&quot;</span><span class="o">));</span>
+
+ <span class="n">List</span> <span class="n">tasks</span> <span class="o">=</span> <span class="n">taskService</span><span class="o">.</span><span class="na">findPersonalTasks</span><span class="o">(</span><span class="s">&quot;alex&quot;</span><span class="o">);</span>
+ <span class="n">Task</span> <span class="n">task</span> <span class="o">=</span> <span class="n">tasks</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="mi">0</span><span class="o">);</span>
+ <span class="n">taskService</span><span class="o">.</span><span class="na">completeTask</span><span class="o">(</span><span class="n">task</span><span class="o">.</span><span class="na">getId</span><span class="o">(),</span> <span class="s">&quot;approved&quot;</span><span class="o">);</span>
+
+ <span class="n">instance</span> <span class="o">=</span> <span class="n">executionService</span><span class="o">.</span><span class="na">findProcessInstanceById</span><span class="o">(</span><span class="n">pid</span><span class="o">);</span>
+ <span class="n">String</span> <span class="n">exeId</span> <span class="o">=</span> <span class="n">instance</span><span class="o">.</span><span class="na">findActiveExecutionIn</span><span class="o">(</span><span class="s">&quot;audit&quot;</span><span class="o">).</span><span class="na">getId</span><span class="o">();</span>
+ <span class="n">executionService</span><span class="o">.</span><span class="na">signalExecutionById</span><span class="o">(</span><span class="n">exeId</span><span class="o">,</span> <span class="s">&quot;to end&quot;</span><span class="o">);</span>
+
+ <span class="n">HistoryProcessInstance</span> <span class="n">historyInstance</span> <span class="o">=</span> <span class="n">historyService</span><span class="o">.</span><span class="na">createHistoryProcessInstanceQuery</span><span class="o">()</span>
+          <span class="o">.</span><span class="na">processInstanceId</span><span class="o">(</span><span class="n">pid</span><span class="o">).</span><span class="na">uniqueResult</span><span class="o">();</span>
+ <span class="n">assertEquals</span><span class="o">(</span><span class="s">&quot;ended&quot;</span><span class="o">,</span> <span class="n">historyInstance</span><span class="o">.</span><span class="na">getState</span><span class="o">());</span>
+<span class="o">}</span>
+
+<span class="kd">public</span> <span class="kt">void</span> <span class="nf">tearDown</span><span class="o">()</span> <span class="kd">throws</span> <span class="n">Exception</span> <span class="o">{</span>
+ <span class="n">repositoryService</span><span class="o">.</span><span class="na">deleteDeploymentCascade</span><span class="o">(</span><span class="n">deploymentId</span><span class="o">);</span>
+ <span class="kd">super</span><span class="o">.</span><span class="na">tearDown</span><span class="o">();</span>
+<span class="o">}</span>
+</code></pre></div>
+
 
 <ol>
 <li>we used the repositoryService to deploy our process file.</li>
@@ -111,6 +209,14 @@ the jbpm.hibernate.cfg.xml would be like as following:</p>
 <li>use the historyService to check whether the process is ended or not. Please noted that in the jBPM 4.0, the finished process  instance was stored in a separate db table, so you can't use the executionService API to look for the finished process instances.
 The process unit test should be passed with green in Junit, and the console output is like:</li>
 </ol>
+
+
+<div class="highlight"><pre><code class="java"> <span class="n">Jul</span> <span class="mi">12</span><span class="o">,</span> <span class="mi">2009</span> <span class="mi">11</span><span class="o">:</span><span class="mi">08</span><span class="o">:</span><span class="mi">17</span> <span class="n">AM</span> <span class="n">org</span><span class="o">.</span><span class="na">hibernate</span><span class="o">.</span><span class="na">tool</span><span class="o">.</span><span class="na">hbm2ddl</span><span class="o">.</span><span class="na">SchemaExport</span> <span class="n">execute</span>
+ <span class="nl">INFO:</span> <span class="n">schema</span> <span class="n">export</span> <span class="n">complete</span>
+ <span class="o">--------------------</span>
+ <span class="n">Made</span> <span class="n">a</span> <span class="n">request</span><span class="o">.....</span>
+ <span class="o">---------------------</span>
+</code></pre></div>
 
 
 <p>So, that is it, you've already built an process, and verify it. It is simple, isn't it? ;-)</p>

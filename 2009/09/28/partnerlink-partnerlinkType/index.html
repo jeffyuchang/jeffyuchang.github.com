@@ -71,15 +71,48 @@
 
 <p>先看下PartnerLinkType的例子.</p>
 
+<div class="highlight"><pre><code class="xml"> <span class="nt">&lt;plnk:partnerLinkType</span> <span class="na">name=</span> <span class="s">&quot;AuctionHouse_SellerLT &quot;</span> <span class="nt">&gt;</span>
+ <span class="nt">&lt;plnk:role</span> <span class="na">name=</span> <span class="s">&quot;AuctionHouse &quot;</span> <span class="na">portType=</span> <span class="s">&quot;tns:sellerPT &quot;</span> <span class="nt">/ &gt;</span>
+ <span class="nt">&lt;plnk:role</span> <span class="na">name=</span> <span class="s">&quot;Seller &quot;</span> <span class="na">portType=</span> <span class="s">&quot;tns:sellerAnswerPT &quot;</span> <span class="nt">/ &gt;</span>
+ <span class="nt">&lt;/plnk:partnerLinkType &gt;</span>
+</code></pre></div>
+
+
 <p>注意这里定义的role可以有1个或者2个,在这个例子当中,我们看到的是2个,代表着需要两个portType(类似Java的Interface)来完成这个通道.这种情况一般是属于异步(Asynchronous)的情况. 我们也可以看做是2个的叫做双向,1个的叫做单向. 1个的一般直接是同步(Synchronous)的,可以直接获取到结果的,不用向异步那样需要一个回调方法(callback).</p>
 
 <p>介绍完PartnerLinkType,可以把PartnerLink想做是PartnerLinkType的实例化.但有点不同的是,在上面我们讲到PartnerLinkType是有单向和双向的,在双向的情况下,那到底是哪个方向呢?比方说,到底是从A - >B 还是从 B - > A呢? PartnerLink的定义就会明确规定了这个方向,比如说:</p>
+
+<div class="highlight"><pre><code class="xml"> <span class="nt">&lt;partnerLink</span> <span class="na">name=</span><span class="s">”seller”</span>
+   <span class="na">partnerLinkType=</span><span class="s">”AuctionHouse_SellerLT”</span>
+   <span class="na">myRole=</span><span class="s">”AuctionHouse”</span> <span class="na">partnerRole=</span><span class="s">”Seller”</span> <span class="nt">&gt;</span>
+ <span class="nt">&lt;/partnerLink &gt;</span>
+</code></pre></div>
+
 
 <p>注意到这里的myRole和partnerRole的属性,这两个属性指明了PartnerLinkType的方向. 这里, MyRole是指BPEL Process, partnerRole是指外部的we service. 那么,这个例子当中就是,这个通道是从bpel process流向exernal web service.也就是有个请求发送到bpel process,然后bpel process通过这个通道,调用到外面的web service,然后外部的web service再传递结果给bpel process.</p>
 
 <p>这里,我们还得看下单向的情况(也就是在定义PartnerLinkType时,只有一个role的). 比方下面的这个例子.</p>
 
+<div class="highlight"><pre><code class="xml"> <span class="nt">&lt;plnk:partnerLinkType</span> <span class="na">name=</span> <span class="s">&quot;loanPartnerLT &quot;</span> <span class="nt">&gt;</span>
+ <span class="nt">&lt;plnk:role</span> <span class="na">name=</span> <span class="s">&quot;loanService &quot;</span> <span class="na">portType=</span> <span class="s">&quot;tns:loanServicePT &quot;</span> <span class="nt">/ &gt;</span>
+ <span class="nt">&lt;/plnk:partnerLinkType &gt;</span>
+ <span class="nt">&lt;plnk:partnerLinkType</span> <span class="na">name=</span> <span class="s">&quot;loanApprovalLT &quot;</span> <span class="nt">&gt;</span>
+ <span class="nt">&lt;plnk:role</span> <span class="na">name=</span> <span class="s">&quot;approver &quot;</span> <span class="na">portType=</span> <span class="s">&quot;tns:loanApprovalPT &quot;</span> <span class="nt">/ &gt;</span>
+ <span class="nt">&lt;/plnk:partnerLinkType &gt;</span>
+</code></pre></div>
+
+
 <p>再看PartnerLink的定义.</p>
+
+<div class="highlight"><pre><code class="xml"> <span class="nt">&lt;partnerLink</span>  <span class="na">name=</span> <span class="s">&quot;customer &quot;</span>
+<span class="na">partnerLinkType=</span> <span class="s">&quot;lns:loanPartnerLT &quot;</span>
+<span class="na">myRole=</span> <span class="s">&quot;loanService &quot;</span> <span class="nt">/ &gt;</span>
+
+ <span class="nt">&lt;partnerLink</span> <span class="na">name=</span> <span class="s">&quot;approver &quot;</span>
+<span class="na">partnerLinkType=</span> <span class="s">&quot;lns:loanApprovalLT &quot;</span>
+<span class="na">partnerRole=</span> <span class="s">&quot;approver &quot;</span> <span class="nt">/ &gt;</span>
+</code></pre></div>
+
 
 <p>在这里,第一个customer的partnerLink定义,说明这个管道是从bpel process这个方向开的,也就是说Request的message应该是发到 Bpel Process. 相反的,第二个approver是属于partnerRole,也就是说这个Request Message应该是BPEL Process发给 partner (也就是外部真正提供服务的web service).</p>
 
